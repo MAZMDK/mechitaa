@@ -1,0 +1,2907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="theme-color" content="#0d1117"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="BioStudy"/>
+<title>Para ti — BioStudy Pro 🧬💙</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+/* ═══════════════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════════════ */
+:root {
+  --bg0:   #080c12;
+  --bg1:   #0d1420;
+  --bg2:   #141d2e;
+  --bg3:   #1a2540;
+  --line:  #1e2d45;
+  --glow:  #1de98b;
+  --glow2: #0ec4f0;
+  --glow3: #b44fff;
+  --heart: #0ec4f0;  /* nuestro corazón = azul */
+  --warn:  #f5a623;
+  --danger:#e84040;
+  --text0: #eef2f8;
+  --text1: #8899aa;
+  --text2: #445566;
+  --font-display: 'Syne', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --r: 14px;
+  --r2: 20px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%; width: 100%;
+  background: var(--bg0);
+  color: var(--text0);
+  font-family: var(--font-display);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   CANVAS PARTÍCULAS
+═══════════════════════════════════════════════════ */
+#particles {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════ */
+#app {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  height: 100dvh; max-width: 430px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* TOP BAR */
+.topbar {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px 8px;
+  background: rgba(13,20,32,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.topbar-logo {
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 500;
+  color: var(--glow);
+  letter-spacing: .04em;
+}
+.topbar-logo span { opacity: .5; }
+.topbar-cfg {
+  background: none; border: none;
+  color: var(--text1); font-size: 18px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: color .2s;
+}
+.topbar-logo .heart-accent { color: var(--heart); }
+.topbar-cfg:hover { color: var(--glow); }
+
+/* SCREENS */
+#screens {
+  flex: 1; overflow: hidden;
+  position: relative;
+}
+.screen {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding-bottom: 80px;
+  opacity: 0; pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity .22s ease, transform .22s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.screen.active {
+  opacity: 1; pointer-events: all;
+  transform: translateY(0);
+}
+
+/* NAVBAR */
+nav {
+  display: flex;
+  background: rgba(13,20,32,.96);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; padding: 10px 4px 12px;
+  background: none; border: none;
+  color: var(--text2); cursor: pointer;
+  transition: color .2s;
+  position: relative;
+}
+.nav-item.active { color: var(--glow); }
+.nav-item.active::before {
+  content: '';
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 28px; height: 2px;
+  background: var(--glow);
+  border-radius: 0 0 4px 4px;
+}
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 9px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════════════════
+   CARDS & COMPONENTS
+═══════════════════════════════════════════════════ */
+.card {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 16px;
+}
+.card-glow {
+  background: linear-gradient(135deg, var(--bg1) 0%, rgba(29,233,139,.04) 100%);
+  border-color: rgba(29,233,139,.15);
+}
+
+.flashcard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  border-radius: var(--r);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  margin-bottom: 10px;
+}
+.flashcard-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(29,233,139,.35);
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+}
+.flashcard-item h4,
+.flashcard-item p {
+  margin: 0;
+}
+.flashcard-item .flashcard-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flashcard-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,.1);
+  color: var(--text0);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.flashcard-action:hover {
+  background: rgba(29,233,139,.25);
+  transform: translateY(-1px);
+}
+
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; height: 48px; border-radius: var(--r);
+  border: none; cursor: pointer; font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; transition: all .15s;
+  letter-spacing: .02em;
+}
+.btn-glow {
+  background: var(--glow); color: #020a06;
+  box-shadow: 0 0 20px rgba(29,233,139,.25);
+}
+.btn-glow:active { background: #24ffaa; transform: scale(.97); }
+.btn-outline {
+  background: transparent; color: var(--glow);
+  border: 1.5px solid var(--glow);
+}
+.btn-outline:active { background: rgba(29,233,139,.08); transform: scale(.97); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-sm { height: 36px; font-size: 12px; padding: 0 14px; }
+.btn-xs { height: 30px; font-size: 11px; padding: 0 12px; border-radius: 10px; }
+
+.chip {
+  display: inline-flex; align-items: center;
+  height: 30px; padding: 0 12px;
+  border-radius: 15px; border: none;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+  background: var(--bg3); color: var(--text1);
+}
+.chip.active { background: var(--glow); color: #020a06; }
+
+.section-title {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500;
+  color: var(--text2); letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.input {
+  width: 100%; background: var(--bg2);
+  border: 1px solid var(--line); border-radius: var(--r);
+  color: var(--text0); font-family: var(--font-display);
+  font-size: 14px; padding: 12px 14px;
+  outline: none; transition: border-color .2s;
+}
+.input:focus { border-color: var(--glow); }
+.input::placeholder { color: var(--text2); }
+
+textarea.input { resize: none; min-height: 90px; }
+
+/* ═══════════════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════════════ */
+.home-header {
+  padding: 28px 20px 20px;
+  background: linear-gradient(180deg, rgba(29,233,139,.06) 0%, transparent 100%);
+  border-bottom: 1px solid var(--line);
+}
+.home-greeting { font-size: 12px; color: var(--text1); margin-bottom: 4px; }
+.home-title {
+  font-size: 28px; font-weight: 800;
+  line-height: 1.15; margin-bottom: 6px;
+}
+.home-subtitle { font-size: 12px; color: var(--heart); margin-top: 6px; font-style: italic; }
+.home-date { font-family: var(--font-mono); font-size: 11px; color: var(--heart); margin-top: 4px; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 10px; padding: 16px 16px 0;
+}
+.stat-card {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px 10px;
+  text-align: center;
+}
+.stat-val { font-size: 22px; font-weight: 800; line-height: 1; }
+.stat-lbl { font-size: 10px; color: var(--text2); margin-top: 4px; font-family: var(--font-mono); }
+
+.modules-grid {
+  display: flex; flex-direction: column;
+  gap: 10px; padding: 16px;
+}
+.module-card {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r2); padding: 16px 18px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer; transition: all .2s;
+  position: relative; overflow: hidden;
+  text-align: left; border: none; width: 100%;
+  color: var(--text0);
+}
+.module-card::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+.module-card:active { transform: scale(.98); }
+.module-icon-bg {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.module-text { flex: 1; }
+.module-title { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+.module-sub { font-size: 11px; color: var(--text1); }
+.module-arrow { color: var(--text2); font-size: 20px; }
+
+.m-green  { --ac: var(--glow);  }
+.m-cyan   { --ac: var(--glow2); }
+.m-purple { --ac: var(--glow3); }
+.m-amber  { --ac: var(--warn);  }
+.module-card { background: linear-gradient(135deg, var(--bg1) 0%, color-mix(in srgb,var(--ac) 6%,var(--bg1)) 100%); border-color: color-mix(in srgb,var(--ac) 20%,var(--line)); }
+.module-card::before { background: var(--ac); }
+.module-icon-bg { background: color-mix(in srgb,var(--ac) 15%,transparent); }
+.module-icon-bg span { color: var(--ac); }
+
+.tip-card {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, var(--bg1), rgba(29,233,139,.05));
+  border: 1px solid rgba(29,233,139,.15);
+  border-radius: var(--r); padding: 14px 16px;
+}
+.tip-head { font-size: 10px; font-weight: 700; color: var(--heart); letter-spacing: .08em; margin-bottom: 6px; }
+.tip-text { font-size: 12px; color: var(--text1); line-height: 1.5; }
+.tip-ia-btn { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--heart); color: var(--heart); border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font-display); transition: background .2s, color .2s; }
+.tip-ia-btn:hover { background: var(--heart); color: #020a06; }
+.tip-ia-btn:disabled { opacity: .7; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════════════════
+   SCREEN HEADERS
+═══════════════════════════════════════════════════ */
+.screen-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 14px;
+  background: rgba(13,20,32,.9);
+  backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 10;
+  border-bottom: 1px solid var(--line);
+}
+.screen-header-title { font-size: 20px; font-weight: 800; }
+.header-actions { display: flex; gap: 8px; }
+
+/* ═══════════════════════════════════════════════════
+   TAREAS
+═══════════════════════════════════════════════════ */
+.chips-row {
+  display: flex; gap: 8px; padding: 12px 16px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.task-list { padding: 8px 16px; display: flex; flex-direction: column; gap: 8px; }
+.task-row {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px 14px;
+  display: flex; align-items: center; gap: 12px;
+  transition: all .2s;
+}
+.task-row.done { opacity: .5; }
+.task-check {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--line); background: none;
+  flex-shrink: 0; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.task-check.done { background: var(--glow); border-color: var(--glow); }
+.task-info { flex: 1; min-width: 0; }
+.task-text { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-row.done .task-text { text-decoration: line-through; color: var(--text2); }
+.task-meta { font-size: 10px; color: var(--text2); font-family: var(--font-mono); margin-top: 3px; }
+.task-del { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 4px 6px; }
+.task-del:hover { color: var(--danger); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text2); font-size: 14px; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+/* ═══════════════════════════════════════════════════
+   NOTAS
+═══════════════════════════════════════════════════ */
+.notes-grid { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.note-card {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r2); padding: 16px;
+  cursor: pointer; transition: all .2s;
+  position: relative; overflow: hidden;
+}
+.note-card::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+}
+.note-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.note-title { font-size: 15px; font-weight: 700; }
+.note-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 3px 8px; border-radius: 10px; }
+.note-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.note-ia-btn { background: var(--bg3); border: none; color: var(--glow2); cursor: pointer; width: 28px; height: 28px; border-radius: 8px; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: background .2s, color .2s; }
+.note-ia-btn:hover { background: var(--glow2); color: #020a06; }
+.note-del { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.note-del:hover { color: var(--danger); background: rgba(232,64,64,.1); }
+.note-preview { font-size: 12px; color: var(--text1); line-height: 1.5; margin-bottom: 8px; }
+.note-date { font-size: 10px; color: var(--text2); font-family: var(--font-mono); }
+
+/* ═══════════════════════════════════════════════════
+   FLASHCARDS LIST
+═══════════════════════════════════════════════════ */
+.flash-list { padding: 8px 16px; display: flex; flex-direction: column; gap: 8px; }
+.flash-row {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 12px 14px;
+  position: relative; overflow: hidden;
+}
+.flash-row::before {
+  content:''; position:absolute; left:0;top:0;bottom:0;
+  width:3px; background:var(--glow3);
+}
+.flash-q { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.flash-a { font-size: 11px; color: var(--text1); }
+.flash-stats { font-size: 10px; color: var(--text2); font-family: var(--font-mono); margin-top: 6px; }
+.flash-ia-btn { position: absolute; right: 38px; top: 50%; transform: translateY(-50%); background: var(--bg3); border: none; color: var(--glow3); cursor: pointer; font-size: 12px; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.flash-ia-btn:hover { background: var(--glow3); color: #fff; }
+.flash-del { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px; }
+
+/* ═══════════════════════════════════════════════════
+   FLASHCARD STUDY MODE
+═══════════════════════════════════════════════════ */
+#study-view {
+  display: none; position: absolute; inset: 0;
+  background: var(--bg0); z-index: 100;
+  flex-direction: column; padding-bottom: 0;
+  overflow: hidden;
+}
+#study-view.open { display: flex; }
+
+.study-top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.study-back {
+  background: none; border: none; color: var(--text1);
+  font-size: 20px; cursor: pointer; padding: 4px;
+}
+.study-progress-text { font-size: 13px; color: var(--text1); flex: 1; }
+.study-score { font-size: 13px; color: var(--text1); }
+
+.study-bar-wrap { height: 4px; background: var(--bg3); flex-shrink: 0; }
+.study-bar { height: 100%; background: var(--glow3); transition: width .3s; }
+
+.study-card-area {
+  flex: 1; display: flex; align-items: center;
+  justify-content: center; padding: 20px;
+}
+.study-card {
+  width: 100%; max-width: 380px;
+  background: var(--bg1);
+  border: 1px solid rgba(180,79,255,.25);
+  border-radius: 24px; padding: 32px 28px;
+  min-height: 260px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; gap: 16px;
+  cursor: pointer;
+  box-shadow: 0 0 40px rgba(180,79,255,.08);
+  transition: transform .15s;
+}
+.study-card:active { transform: scale(.98); }
+.study-card-side {
+  font-family: var(--font-mono); font-size: 10px;
+  font-weight: 500; letter-spacing: .1em;
+  color: var(--glow3);
+}
+.study-card-text { font-size: 19px; font-weight: 700; line-height: 1.4; }
+.study-card-answer { font-size: 15px; color: var(--text1); line-height: 1.5; }
+.study-card-hint { font-size: 12px; color: var(--text2); margin-top: 8px; }
+
+.study-actions {
+  padding: 16px 20px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.study-flip-btn { width: 100%; }
+.study-eval-row { display: flex; gap: 12px; }
+.study-eval-row .btn { flex: 1; }
+
+/* ═══════════════════════════════════════════════════
+   STUDY RESULTS
+═══════════════════════════════════════════════════ */
+#results-view {
+  display: none; position: absolute; inset: 0;
+  background: var(--bg0); z-index: 100;
+  flex-direction: column; align-items: center;
+  justify-content: center; padding: 32px 24px;
+  gap: 20px; text-align: center;
+}
+#results-view.open { display: flex; }
+.results-emoji { font-size: 60px; }
+.results-title { font-size: 26px; font-weight: 800; }
+.results-pct { font-size: 48px; font-weight: 800; color: var(--glow); }
+.results-dedication { font-size: 13px; color: var(--heart); margin-top: 8px; font-style: italic; }
+.results-stats {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r2); padding: 20px;
+  display: flex; gap: 0; width: 100%;
+}
+.results-stat { flex: 1; text-align: center; }
+.results-stat:not(:last-child) { border-right: 1px solid var(--line); }
+.rs-val { font-size: 24px; font-weight: 800; }
+.rs-lbl { font-size: 11px; color: var(--text2); font-family: var(--font-mono); }
+.results-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+/* ═══════════════════════════════════════════════════
+   POMODORO
+═══════════════════════════════════════════════════ */
+.pomo-container { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.pomo-modes { display: flex; gap: 8px; }
+.pomo-timer-card {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: 24px; padding: 28px 20px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.pomo-circle-wrap { position: relative; width: 200px; height: 200px; }
+#pomo-svg { width: 200px; height: 200px; }
+.pomo-circle-bg { fill: none; stroke: var(--bg3); stroke-width: 10; }
+.pomo-circle-fg { fill: none; stroke-width: 10; stroke-linecap: round;
+  transform: rotate(-90deg); transform-origin: center;
+  transition: stroke-dashoffset .8s ease; }
+.pomo-time-label {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px;
+}
+.pomo-time { font-size: 44px; font-weight: 800; font-family: var(--font-mono); }
+.pomo-mode-text { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.pomo-session-count { font-size: 20px; }
+.pomo-controls { display: flex; gap: 10px; width: 100%; }
+.pomo-controls .btn { flex: 1; }
+.pomo-config {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r2); padding: 16px;
+}
+.pomo-config-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.pomo-config-row:last-child { margin-bottom: 0; }
+.pomo-config-label { font-size: 12px; color: var(--text1); width: 120px; flex-shrink: 0; }
+.pomo-config-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.pomo-sessions-card {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pomo-total-label { font-size: 12px; color: var(--text1); }
+.pomo-total-val { font-size: 18px; font-weight: 800; color: var(--warn); }
+
+/* ═══════════════════════════════════════════════════
+   MODAL / POPUP
+═══════════════════════════════════════════════════ */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(6px);
+  z-index: 200; align-items: flex-end;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px 32px;
+  width: 100%; max-width: 430px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: slideUp .25s ease;
+  max-height: 90dvh; overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-title { font-size: 20px; font-weight: 800; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { flex: 1; }
+
+/* IA modal special */
+.filedrop {
+  border: 2px dashed var(--line);
+  border-radius: var(--r2); padding: 28px;
+  text-align: center; cursor: pointer;
+  transition: border-color .2s;
+}
+.filedrop:hover, .filedrop.dragover { border-color: var(--glow2); }
+.filedrop-icon { font-size: 36px; margin-bottom: 10px; }
+.filedrop-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.filedrop-sub { font-size: 12px; color: var(--text1); }
+.filedrop-name { color: var(--glow2); font-weight: 700; font-size: 13px; margin-top: 10px; }
+#file-input { display: none; }
+.ai-status {
+  font-size: 12px; color: var(--glow);
+  font-family: var(--font-mono);
+  min-height: 20px; text-align: center;
+}
+.n-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.ia-attachments {
+  display: flex; gap: 8px; overflow-x: auto;
+  margin-top: 10px; padding-bottom: 4px;
+}
+.ia-attach-item {
+  position: relative; width: 60px; height: 60px;
+  border-radius: 8px; flex-shrink: 0;
+  background: var(--bg2); border: 1px solid var(--line);
+  overflow: hidden;
+}
+.ia-attach-img { width: 100%; height: 100%; object-fit: cover; }
+.ia-attach-del {
+  position: absolute; top: -4px; right: -4px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--danger); color: #fff;
+  font-size: 12px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; border: none;
+}
+
+/* SETTINGS modal */
+.settings-label { font-size: 12px; color: var(--text1); margin-bottom: 6px; }
+.settings-hint { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.settings-link { color: var(--glow2); text-decoration: none; }
+.settings-dedication { font-size: 12px; color: var(--heart); text-align: center; margin-top: 12px; font-style: italic; }
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--glow); color: #020a06;
+  font-weight: 700; font-size: 13px;
+  padding: 10px 22px; border-radius: 50px;
+  opacity: 0; transition: all .3s;
+  z-index: 999; white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════════════════
+   TAG COLORS
+═══════════════════════════════════════════════════ */
+.tag-pcr      { background: rgba(29,233,139,.15); color: var(--glow);   }
+.tag-proteinas{ background: rgba(14,196,240,.15); color: var(--glow2);  }
+.tag-genetica { background: rgba(180,79,255,.15); color: var(--glow3);  }
+.tag-metabolismo { background: rgba(245,166,35,.15); color: var(--warn);}
+.tag-lab      { background: rgba(232,64,64,.15);  color: var(--danger); }
+.tag-enzimas  { background: rgba(14,196,240,.15); color: var(--glow2);  }
+.tag-general  { background: rgba(100,120,160,.15);color: var(--text1);  }
+
+/* ═══════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-in { animation: fadeInUp .3s ease both; }
+.delay-1 { animation-delay: .05s; }
+.delay-2 { animation-delay: .10s; }
+.delay-3 { animation-delay: .15s; }
+.delay-4 { animation-delay: .20s; }
+
+/* ═══════════════════════════════════════════════════
+   CHAT IA FLOTANTE
+═══════════════════════════════════════════════════ */
+#chat-fab {
+  position: fixed;
+  bottom: 88px; right: 16px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--glow2), var(--glow3));
+  border: none; cursor: pointer;
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(14,196,240,.4);
+  z-index: 300;
+  transition: transform .2s, box-shadow .2s;
+  animation: fabPulse 3s ease-in-out infinite;
+}
+#chat-fab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(14,196,240,.6); }
+@keyframes fabPulse {
+  0%,100% { box-shadow: 0 4px 20px rgba(14,196,240,.4); }
+  50%      { box-shadow: 0 4px 30px rgba(14,196,240,.7), 0 0 0 6px rgba(14,196,240,.1); }
+}
+
+#chat-panel {
+  position: fixed;
+  bottom: 0; right: 0;
+  width: 100%; max-width: 430px;
+  height: 75dvh;
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 24px 24px 0 0;
+  display: flex; flex-direction: column;
+  z-index: 400;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 -8px 40px rgba(0,0,0,.5);
+}
+#chat-panel.open { transform: translateY(0); }
+
+.chat-panel-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.chat-panel-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--glow2), var(--glow3));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.chat-panel-info { flex: 1; }
+.chat-panel-name { font-size: 15px; font-weight: 700; }
+.chat-panel-status { font-size: 11px; color: var(--glow); font-family: var(--font-mono); }
+.chat-panel-close {
+  background: none; border: none; color: var(--text1);
+  font-size: 20px; cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: color .2s;
+}
+.chat-panel-close:hover { color: var(--text0); }
+.chat-panel-clear {
+  background: none; border: none; color: var(--text2);
+  font-size: 12px; cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: color .2s;
+  font-family: var(--font-mono);
+}
+.chat-panel-clear:hover { color: var(--danger); }
+
+#chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 14px 14px;
+  display: flex; flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.chat-msg {
+  display: flex; gap: 10px;
+  animation: fadeInUp .2s ease both;
+}
+.chat-msg.user { flex-direction: row-reverse; }
+.chat-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 13px; line-height: 1.5;
+}
+.chat-msg.user .chat-bubble {
+  background: linear-gradient(135deg, var(--glow2), var(--glow3));
+  color: #05111a;
+  font-weight: 600;
+  border-radius: 18px 18px 4px 18px;
+}
+.chat-msg.bot .chat-bubble {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  color: var(--text0);
+  border-radius: 18px 18px 18px 4px;
+}
+.chat-typing {
+  display: flex; gap: 5px; align-items: center;
+  padding: 12px 16px;
+}
+.chat-typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--glow2);
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+.chat-typing span:nth-child(2) { animation-delay: .2s; }
+.chat-typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes typingDot {
+  0%,80%,100% { transform: scale(.6); opacity:.4; }
+  40% { transform: scale(1); opacity:1; }
+}
+
+.chat-bubble-imgs {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
+}
+.chat-bubble-img {
+  width: 80px; height: 80px; object-fit: cover;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
+}
+
+.chat-input-area {
+  display: flex; flex-direction: column;
+  padding: 10px 14px 16px;
+  border-top: 1px solid var(--line);
+  flex-shrink: 0; background: var(--bg1);
+}
+.chat-attachments-preview {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding-bottom: 8px; margin-bottom: 4px;
+}
+.chat-attachments-preview:empty { display: none; }
+.chat-attach-preview-item {
+  position: relative; width: 50px; height: 50px;
+  border-radius: 8px; flex-shrink: 0;
+  border: 1px solid var(--line);
+}
+.chat-attach-preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
+.chat-attach-preview-del {
+  position: absolute; top: -6px; right: -6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--danger); color: #fff;
+  font-size: 10px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none;
+}
+
+.chat-input-row {
+  display: flex; align-items: flex-end; gap: 8px; width: 100%;
+}
+#chat-attach-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bg2); border: 1px solid var(--line);
+  color: var(--text1); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0; transition: all .2s;
+}
+#chat-attach-btn:hover { background: var(--bg3); color: var(--glow2); border-color: var(--glow2); }
+#chat-input {
+  flex: 1; background: var(--bg2);
+  border: 1px solid var(--line); border-radius: 20px;
+  color: var(--text0); font-family: var(--font-display);
+  font-size: 13px; padding: 10px 16px;
+  outline: none; resize: none;
+  max-height: 100px; min-height: 40px;
+  transition: border-color .2s;
+  scrollbar-width: thin;
+  line-height: 1.4;
+}
+#chat-input:focus { border-color: var(--glow2); }
+#chat-input::placeholder { color: var(--text2); }
+#chat-send {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--glow2), var(--glow3));
+  border: none; cursor: pointer;
+  font-size: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s, opacity .15s;
+}
+#chat-send:hover { transform: scale(1.1); }
+#chat-send:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+.chat-welcome {
+  text-align: center; padding: 20px 16px;
+  color: var(--text2); font-size: 12px; line-height: 1.6;
+}
+.chat-welcome-emoji { font-size: 36px; margin-bottom: 8px; }
+.chat-welcome-title { font-size: 15px; font-weight: 700; color: var(--text0); margin-bottom: 6px; }
+.chat-suggestions {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 14px;
+}
+.chat-suggestion {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 12px; padding: 9px 14px;
+  font-size: 12px; color: var(--glow2);
+  cursor: pointer; text-align: left;
+  transition: all .15s; font-family: var(--font-display);
+  font-weight: 600;
+}
+.chat-suggestion:hover { background: var(--bg3); border-color: var(--glow2); }
+
+#chat-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  z-index: 390;
+}
+#chat-overlay.open { display: block; }
+
+/* ═══════════════════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════════════════ */
+.quiz-setup { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.quiz-topic-area { display: flex; flex-direction: column; gap: 8px; }
+.quiz-topic-input {
+  width: 100%; resize: vertical; min-height: 80px;
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); color: var(--text0);
+  font-family: var(--font-display); font-size: 14px;
+  padding: 12px 14px; outline: none;
+  transition: border-color .2s;
+}
+.quiz-topic-input:focus { border-color: var(--glow2); }
+.quiz-topic-input::placeholder { color: var(--text2); }
+
+.quiz-level-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+}
+.level-card {
+  border: 1.5px solid var(--line); border-radius: var(--r);
+  padding: 14px 8px; text-align: center; cursor: pointer;
+  background: var(--bg2); transition: all .15s;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.level-card:active { transform: scale(.97); }
+.level-card.selected { border-color: var(--level-color,var(--glow)); background: color-mix(in srgb,var(--level-color,var(--glow)) 12%,transparent); }
+.level-emoji { font-size: 22px; }
+.level-name { font-size: 12px; font-weight: 700; color: var(--text0); }
+.level-desc { font-size: 10px; color: var(--text2); }
+
+.quiz-nq-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.quiz-gen-btn {
+  width: 100%; height: 52px; border-radius: var(--r);
+  background: linear-gradient(135deg, var(--glow2), var(--glow3));
+  color: #041018; font-weight: 800; font-size: 15px;
+  border: none; cursor: pointer; font-family: var(--font-display);
+  transition: opacity .15s, transform .15s; letter-spacing: .02em;
+}
+.quiz-gen-btn:disabled { opacity: .5; cursor: not-allowed; }
+.quiz-gen-btn:not(:disabled):active { transform: scale(.98); }
+.quiz-gen-status { text-align: center; font-size: 12px; color: var(--glow2); font-family: var(--font-mono); min-height: 18px; }
+
+/* QUIZ PLAY */
+#quiz-play-view {
+  display: none; position: absolute; inset: 0;
+  background: var(--bg0); z-index: 100;
+  flex-direction: column; overflow: hidden;
+}
+#quiz-play-view.open { display: flex; }
+
+.quiz-play-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px 10px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.quiz-play-back { background: none; border: none; color: var(--text1); font-size: 20px; cursor: pointer; }
+.quiz-play-info { flex: 1; }
+.quiz-play-num { font-size: 13px; color: var(--text1); }
+.quiz-play-score { font-size: 13px; font-weight: 700; }
+.quiz-bar-wrap { height: 4px; background: var(--bg3); flex-shrink: 0; }
+.quiz-bar { height: 100%; background: linear-gradient(90deg,var(--glow2),var(--glow3)); transition: width .3s; }
+
+.quiz-diff-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+
+.quiz-play-body { flex: 1; overflow-y: auto; padding: 20px 18px 10px; }
+.quiz-question-text { font-size: 18px; font-weight: 700; line-height: 1.4; margin-bottom: 20px; }
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option {
+  background: var(--bg2); border: 1.5px solid var(--line);
+  border-radius: var(--r); padding: 14px 16px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  text-align: left; color: var(--text0); transition: all .15s;
+  font-family: var(--font-display); position: relative;
+  display: flex; align-items: center; gap: 10px;
+}
+.quiz-option:not(.answered):hover { border-color: var(--glow2); background: var(--bg3); }
+.quiz-option.correct { border-color: var(--glow)!important; background: rgba(29,233,139,.12)!important; color: var(--glow); }
+.quiz-option.wrong   { border-color: var(--danger)!important; background: rgba(232,64,64,.12)!important; color: var(--danger); }
+.quiz-option.reveal  { opacity: .55; }
+.option-letter {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg3); border: 1.5px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+  transition: all .15s;
+}
+.quiz-option.correct .option-letter { background: var(--glow); border-color: var(--glow); color: #020a06; }
+.quiz-option.wrong   .option-letter { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+.quiz-explanation {
+  margin-top: 16px; padding: 14px 16px;
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); font-size: 13px;
+  color: var(--text1); line-height: 1.6;
+  display: none; animation: fadeInUp .2s ease both;
+}
+.quiz-explanation.show { display: block; }
+.quiz-explanation-head { font-size: 11px; font-weight: 700; color: var(--glow2); letter-spacing: .06em; margin-bottom: 6px; }
+
+.quiz-play-footer {
+  padding: 14px 18px 24px; flex-shrink: 0;
+  border-top: 1px solid var(--line);
+}
+.quiz-next-btn {
+  width: 100%; height: 48px; border-radius: var(--r);
+  background: var(--glow); color: #020a06;
+  font-weight: 800; font-size: 14px;
+  border: none; cursor: pointer; font-family: var(--font-display);
+  display: none; transition: opacity .15s;
+}
+.quiz-next-btn.show { display: block; }
+
+/* QUIZ RESULTS */
+#quiz-results-view {
+  display: none; position: absolute; inset: 0;
+  background: var(--bg0); z-index: 100;
+  flex-direction: column; align-items: center;
+  justify-content: center; padding: 28px 24px;
+  gap: 16px; text-align: center;
+}
+#quiz-results-view.open { display: flex; }
+.qres-emoji { font-size: 58px; }
+.qres-title { font-size: 24px; font-weight: 800; }
+.qres-pct { font-size: 52px; font-weight: 800; color: var(--glow2); line-height: 1; }
+.qres-level-tag { font-size: 12px; color: var(--text1); margin-top: 4px; }
+.qres-grid {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r2); padding: 18px;
+  display: flex; gap: 0; width: 100%;
+}
+.qres-stat { flex: 1; text-align: center; }
+.qres-stat:not(:last-child) { border-right: 1px solid var(--line); }
+.qres-val { font-size: 22px; font-weight: 800; }
+.qres-lbl { font-size: 10px; color: var(--text2); font-family: var(--font-mono); }
+.qres-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- Partículas -->
+<canvas id="particles"></canvas>
+
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">Para ti<span class="heart-accent"> 💙</span></div>
+    <button class="topbar-cfg" onclick="openModal('settings-modal')" title="Configuración">⚙️</button>
+  </div>
+
+  <!-- SCREENS -->
+  <div id="screens">
+
+    <!-- ══ HOME ══════════════════════════════════════ -->
+    <div class="screen active" id="s-home">
+      <div class="home-header fade-in">
+        <div class="home-greeting" id="home-greeting">Buenos días ☀️</div>
+        <div class="home-title">Para la biotecnóloga<br>más bella 🧬</div>
+        <div class="home-subtitle">Hecho con cariño por tu novio</div>
+        <div class="home-date" id="home-date"></div>
+      </div>
+
+      <div class="stats-grid fade-in delay-1">
+        <div class="stat-card">
+          <div class="stat-val" style="color:var(--warn)" id="stat-streak">0</div>
+          <div class="stat-lbl">🔥 racha</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:var(--danger)" id="stat-pomos">0</div>
+          <div class="stat-lbl">🍅 pomodoros</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:var(--glow3)" id="stat-cards">0</div>
+          <div class="stat-lbl">🃏 tarjetas</div>
+        </div>
+      </div>
+
+      <div class="modules-grid fade-in delay-2">
+        <p class="section-title" style="margin:8px 0 2px">Módulos</p>
+        <button class="module-card m-green" onclick="goTo('tasks')">
+          <div class="module-icon-bg"><span>✓</span></div>
+          <div class="module-text">
+            <div class="module-title">Tareas</div>
+            <div class="module-sub">Para que no se te escape nada</div>
+          </div>
+          <div class="module-arrow">›</div>
+        </button>
+        <button class="module-card m-cyan" onclick="goTo('notes')">
+          <div class="module-icon-bg"><span>✎</span></div>
+          <div class="module-text">
+            <div class="module-title">Notas</div>
+            <div class="module-sub">Todo lo que apuntas, ordenado</div>
+          </div>
+          <div class="module-arrow">›</div>
+        </button>
+        <button class="module-card m-purple" onclick="goTo('flash')">
+          <div class="module-icon-bg"><span>⬡</span></div>
+          <div class="module-text">
+            <div class="module-title">Flashcards + IA</div>
+            <div class="module-sub">Sube PDF o pega texto → IA hace las tarjetas</div>
+          </div>
+          <div class="module-arrow">›</div>
+        </button>
+        <button class="module-card m-amber" onclick="goTo('pomo')">
+          <div class="module-icon-bg"><span>◎</span></div>
+          <div class="module-text">
+            <div class="module-title">Focus Pomodoro</div>
+            <div class="module-sub">Enfócate y descansa cuando toque</div>
+          </div>
+          <div class="module-arrow">›</div>
+        </button>
+      </div>
+
+      <div class="tip-card fade-in delay-3">
+        <div class="tip-head">💡 Un tip de tu novio</div>
+        <div class="tip-text" id="home-tip"></div>
+        <button class="tip-ia-btn" id="home-tip-ia-btn" onclick="fetchTipWithAI()" title="Un tip personalizado de tu novio con IA">🤖 Tip de tu novio con IA</button>
+      </div>
+    </div>
+
+    <!-- ══ TAREAS ══════════════════════════════════════ -->
+    <div class="screen" id="s-tasks">
+      <div class="screen-header">
+        <div class="screen-header-title">✓ Tareas</div>
+        <div class="header-actions">
+          <button class="btn btn-glow btn-sm" onclick="openModal('task-modal')">+ Nueva</button>
+        </div>
+      </div>
+      <div class="chips-row" id="task-chips"></div>
+      <div class="task-list" id="task-list"></div>
+    </div>
+
+    <!-- ══ NOTAS ══════════════════════════════════════ -->
+    <div class="screen" id="s-notes">
+      <div class="screen-header">
+        <div class="screen-header-title">✎ Notas</div>
+        <div class="header-actions">
+          <button class="btn btn-sm" style="background:var(--glow2);color:#020a06;font-weight:700"
+                  onclick="openNoteEditor()">+ Nota</button>
+        </div>
+      </div>
+      <div class="notes-grid" id="notes-grid"></div>
+    </div>
+
+    <!-- ══ FLASHCARDS ══════════════════════════════════════ -->
+    <div class="screen" id="s-flash">
+      <div class="screen-header">
+        <div class="screen-header-title">⬡ Flashcards</div>
+        <div class="header-actions">
+          <button class="btn btn-sm" style="background:var(--glow3);color:#fff;font-weight:700"
+                  onclick="openModal('card-modal')">+ Manual</button>
+          <button class="btn btn-sm" style="background:var(--glow2);color:#020a06;font-weight:700"
+                  onclick="openModal('ia-modal')">📄 IA</button>
+        </div>
+      </div>
+      <div style="padding:12px 16px" id="flash-study-btn-wrap"></div>
+      <div class="flash-order-row" id="flash-order-row" style="display:none; padding:0 16px 8px; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span class="section-title" style="margin:0">Orden:</span>
+        <button class="chip" id="study-order-random" onclick="setStudyOrder('random')">Aleatorio</button>
+        <button class="chip" id="study-order-hard" onclick="setStudyOrder('hard')">Difíciles primero</button>
+      </div>
+      <div class="flash-list" id="flash-list"></div>
+    </div>
+
+    <!-- ══ POMODORO ══════════════════════════════════════ -->
+    <div class="screen" id="s-pomo">
+      <div class="screen-header">
+        <div class="screen-header-title">◎ Focus Pomodoro</div>
+      </div>
+      <div class="pomo-container">
+        <div class="pomo-modes" id="pomo-modes">
+          <button class="chip active" data-mode="work" onclick="setPomoMode('work')">🎯 Trabajo</button>
+          <button class="chip" data-mode="break" onclick="setPomoMode('break')">🌿 Descanso</button>
+        </div>
+        <div class="pomo-timer-card">
+          <div class="pomo-circle-wrap">
+            <svg id="pomo-svg" viewBox="0 0 200 200">
+              <circle class="pomo-circle-bg" cx="100" cy="100" r="88"/>
+              <circle class="pomo-circle-fg" id="pomo-arc" cx="100" cy="100" r="88"/>
+            </svg>
+            <div class="pomo-time-label">
+              <div class="pomo-time" id="pomo-display">25:00</div>
+              <div class="pomo-mode-text" id="pomo-mode-label">ENFÓCATE 🎯</div>
+              <div class="pomo-session-count" id="pomo-session-icons">🍅 × 0</div>
+            </div>
+          </div>
+          <div class="pomo-controls">
+            <button class="btn btn-glow" id="pomo-start-btn" onclick="pomoToggle()">▶ Iniciar</button>
+            <button class="btn btn-outline btn-sm" style="height:48px" onclick="pomoReset()">↺ Reset</button>
+          </div>
+        </div>
+        <div class="pomo-config">
+          <p class="section-title" style="margin-bottom:12px">Duración</p>
+          <div class="pomo-config-row">
+            <span class="pomo-config-label">Trabajo (min)</span>
+            <div class="pomo-config-chips" id="cfg-work"></div>
+          </div>
+          <div class="pomo-config-row">
+            <span class="pomo-config-label">Descanso (min)</span>
+            <div class="pomo-config-chips" id="cfg-break"></div>
+          </div>
+        </div>
+        <div class="pomo-sessions-card">
+          <span class="pomo-total-label">Total sesiones completadas</span>
+          <span class="pomo-total-val" id="pomo-total">0 🍅</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ QUIZ ══════════════════════════════════════ -->
+    <div class="screen" id="s-quiz">
+      <div class="screen-header">
+        <div class="screen-header-title">🧪 Quiz con IA</div>
+      </div>
+      <div class="quiz-setup">
+        <div class="quiz-topic-area">
+          <p class="section-title">Tema(s) a evaluar</p>
+          <textarea class="quiz-topic-input" id="quiz-topic" placeholder="Ej: PCR y sus aplicaciones, Replicación del ADN, Enzimas de restricción..."></textarea>
+        </div>
+        <div>
+          <p class="section-title" style="margin-bottom:10px">Nivel de dificultad</p>
+          <div class="quiz-level-grid" id="quiz-level-grid">
+            <div class="level-card selected" data-level="basico" style="--level-color:#1de98b" onclick="selectLevel(this,'basico')">
+              <div class="level-emoji">🌱</div>
+              <div class="level-name">Básico</div>
+              <div class="level-desc">Conceptos fundamentales</div>
+            </div>
+            <div class="level-card" data-level="intermedio" style="--level-color:#0ec4f0" onclick="selectLevel(this,'intermedio')">
+              <div class="level-emoji">🧬</div>
+              <div class="level-name">Intermedio</div>
+              <div class="level-desc">Aplica y analiza</div>
+            </div>
+            <div class="level-card" data-level="avanzado" style="--level-color:#b44fff" onclick="selectLevel(this,'avanzado')">
+              <div class="level-emoji">🔬</div>
+              <div class="level-name">Avanzado</div>
+              <div class="level-desc">Evalua y sintetiza</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="section-title" style="margin-bottom:8px">Número de preguntas</p>
+          <div class="quiz-nq-row" id="quiz-nq-row"></div>
+        </div>
+        <div class="quiz-gen-status" id="quiz-gen-status"></div>
+        <button class="quiz-gen-btn" id="quiz-gen-btn" onclick="generateQuiz()">⚡ Generar Quiz con IA</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- STUDY VIEW (overlay) -->
+  <div id="study-view">
+    <div class="study-top">
+      <button class="study-back" onclick="exitStudy()">←</button>
+      <div class="study-progress-text" id="study-prog-text">1 / 10</div>
+      <div class="study-score" id="study-score-text">✅ 0  ❌ 0</div>
+    </div>
+    <div class="study-bar-wrap">
+      <div class="study-bar" id="study-bar" style="width:0%"></div>
+    </div>
+    <div class="study-card-area">
+      <div class="study-card" id="study-card" onclick="flipCard()">
+        <div class="study-card-side" id="study-side">PREGUNTA</div>
+        <div class="study-card-text" id="study-main"></div>
+        <div class="study-card-answer" id="study-answer" style="display:none"></div>
+        <div class="study-card-hint" id="study-hint">Toca para ver la respuesta</div>
+      </div>
+    </div>
+    <div class="study-actions">
+      <button class="btn btn-glow study-flip-btn" id="study-flip-btn" onclick="flipCard()">👁 Ver respuesta</button>
+      <div class="study-eval-row" id="study-eval-row" style="display:none">
+        <button class="btn btn-danger" onclick="nextCard(false)">❌ Repasar</button>
+        <button class="btn btn-glow" onclick="nextCard(true)">✅ Lo sé</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ PLAY VIEW (overlay) -->
+  <div id="quiz-play-view">
+    <div class="quiz-play-top">
+      <button class="quiz-play-back" onclick="exitQuiz()">←</button>
+      <div class="quiz-play-info">
+        <div class="quiz-play-num" id="quiz-play-num">1 / 10</div>
+      </div>
+      <div class="quiz-play-score" id="quiz-play-score">✅ 0 &nbsp;❌ 0</div>
+    </div>
+    <div class="quiz-bar-wrap"><div class="quiz-bar" id="quiz-bar" style="width:0%"></div></div>
+    <div class="quiz-play-body" id="quiz-play-body"></div>
+    <div class="quiz-play-footer">
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="quizNextQuestion()">→ Siguiente</button>
+    </div>
+  </div>
+
+  <!-- QUIZ RESULTS VIEW (overlay) -->
+  <div id="quiz-results-view">
+    <div class="qres-emoji" id="qres-emoji">🏆</div>
+    <div class="qres-title" id="qres-title">¡Quiz completado!</div>
+    <div class="qres-pct" id="qres-pct">0%</div>
+    <div class="qres-level-tag" id="qres-level-tag"></div>
+    <div class="qres-grid">
+      <div class="qres-stat">
+        <div class="qres-val" id="qres-ok" style="color:var(--glow)">0</div>
+        <div class="qres-lbl">correctas</div>
+      </div>
+      <div class="qres-stat">
+        <div class="qres-val" id="qres-ko" style="color:var(--danger)">0</div>
+        <div class="qres-lbl">incorrectas</div>
+      </div>
+      <div class="qres-stat">
+        <div class="qres-val" id="qres-tot" style="color:var(--text1)">0</div>
+        <div class="qres-lbl">total</div>
+      </div>
+    </div>
+    <div class="qres-btns">
+      <button class="btn" style="background:linear-gradient(135deg,var(--glow2),var(--glow3));color:#041018;font-weight:800" onclick="restartQuiz()">▶ Repetir quiz</button>
+      <button class="btn btn-outline" onclick="exitQuiz()">+ Nuevo quiz</button>
+    </div>
+  </div>
+
+  <div id="results-view">
+    <div class="results-emoji" id="res-emoji">🎉</div>
+    <div class="results-title" id="res-title">¡Sesión completada!</div>
+    <div class="results-pct" id="res-pct">0%</div>
+    <div class="results-dedication" id="res-dedication">Como siempre, orgulloso de ti 💙</div>
+    <div class="results-stats">
+      <div class="results-stat">
+        <div class="rs-val" id="res-ok" style="color:var(--glow)">0</div>
+        <div class="rs-lbl">correctas</div>
+      </div>
+      <div class="results-stat">
+        <div class="rs-val" id="res-ko" style="color:var(--danger)">0</div>
+        <div class="rs-lbl">a repasar</div>
+      </div>
+      <div class="results-stat">
+        <div class="rs-val" id="res-tot" style="color:var(--text1)">0</div>
+        <div class="rs-lbl">total</div>
+      </div>
+    </div>
+    <div class="results-btns">
+      <button class="btn btn-glow" onclick="startStudy()">▶ Estudiar de nuevo</button>
+      <button class="btn btn-outline" onclick="exitStudy()">← Volver a la lista</button>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav>
+    <button class="nav-item active" data-screen="home" onclick="goTo('home')">
+      <span class="nav-icon">⌂</span><span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-item" data-screen="tasks" onclick="goTo('tasks')">
+      <span class="nav-icon">✓</span><span class="nav-label">Tareas</span>
+    </button>
+    <button class="nav-item" data-screen="flash" onclick="goTo('flash')">
+      <span class="nav-icon">⬡</span><span class="nav-label">Cards</span>
+    </button>
+    <button class="nav-item" data-screen="quiz" onclick="goTo('quiz')">
+      <span class="nav-icon">🧪</span><span class="nav-label">Quiz</span>
+    </button>
+    <button class="nav-item" data-screen="notes" onclick="goTo('notes')">
+      <span class="nav-icon">✎</span><span class="nav-label">Notas</span>
+    </button>
+    <button class="nav-item" data-screen="pomo" onclick="goTo('pomo')">
+      <span class="nav-icon">◎</span><span class="nav-label">Focus</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ══ CHAT IA ══════════════════════════════════════ -->
+<div id="chat-overlay" onclick="closeChat()"></div>
+
+<button id="chat-fab" onclick="toggleChat()" title="Chat con IA" aria-label="Abrir chat IA">🤖</button>
+
+<div id="chat-panel">
+  <div class="chat-panel-header">
+    <div class="chat-panel-avatar">🧬</div>
+    <div class="chat-panel-info">
+      <div class="chat-panel-name">Asistente de Biología</div>
+      <div class="chat-panel-status" id="chat-status">● En línea</div>
+    </div>
+    <button class="chat-panel-clear" onclick="clearChat()" title="Limpiar chat">🗑 Limpiar</button>
+    <button class="chat-panel-close" onclick="closeChat()">✕</button>
+  </div>
+  <div id="chat-messages">
+    <div class="chat-welcome" id="chat-welcome">
+      <div class="chat-welcome-emoji">🧬</div>
+      <div class="chat-welcome-title">¡Hola! Soy tu asistente de biología</div>
+      <div>Puedes preguntarme cualquier cosa sobre biotecnología, genética, bioquímica, o tus apuntes. Estoy aquí para ayudarte a estudiar 💙</div>
+      <div class="chat-suggestions">
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">¿Qué es la PCR y para qué sirve?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">Explícame la replicación del ADN</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">¿Cuál es la diferencia entre ARNm y ARNt?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">Resúmeme el ciclo de Krebs</button>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-area">
+    <div class="chat-attachments-preview" id="chat-attach-preview"></div>
+    <div class="chat-input-row">
+      <input type="file" id="chat-file-input" accept=".pdf,.txt" multiple style="display:none" onchange="handleChatFiles(event)">
+      <button id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Adjuntar archivos">📎</button>
+      <textarea id="chat-input" placeholder="Pregunta sobre biotecnología..." rows="1" onkeydown="chatKeyDown(event)" oninput="chatAutoResize(this)"></textarea>
+      <button id="chat-send" onclick="sendChatMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODALS ══════════════════════════════════════════ -->
+
+<!-- TASK MODAL -->
+<div class="modal-backdrop" id="task-modal">
+  <div class="modal">
+    <div class="modal-title">✓ Nueva tarea</div>
+    <input class="input" id="task-input" placeholder="¿Qué tienes que hacer?" onkeydown="if(event.key==='Enter')saveTask()"/>
+    <div>
+      <p class="settings-label">Categoría</p>
+      <div class="chips-row" style="padding:0;gap:6px;flex-wrap:wrap" id="task-cat-chips"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('task-modal')">Cancelar</button>
+      <button class="btn btn-glow" onclick="saveTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-backdrop" id="note-modal">
+  <div class="modal">
+    <div class="modal-title" id="note-modal-title">✎ Nueva nota</div>
+    <input class="input" id="note-title-input" placeholder="Título (ej: Apuntes de PCR)"/>
+    <div>
+      <p class="settings-label">Etiqueta</p>
+      <div class="chips-row" style="padding:0;gap:6px;flex-wrap:wrap" id="note-tag-chips"></div>
+    </div>
+    <textarea class="input" id="note-body-input" rows="5" placeholder="Escribe tu nota aquí..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-outline" style="border-color:var(--glow2);color:var(--glow2)" onclick="closeModal('note-modal')">Cancelar</button>
+      <button class="btn" style="background:var(--glow2);color:#020a06;font-weight:700" onclick="saveNote()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CARD MODAL -->
+<div class="modal-backdrop" id="card-modal">
+  <div class="modal">
+    <div class="modal-title">⬡ Nueva tarjeta</div>
+    <input class="input" id="card-q-input" placeholder="Pregunta (frente)"/>
+    <textarea class="input" id="card-a-input" rows="3" placeholder="Respuesta (dorso)"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-outline" style="border-color:var(--glow3);color:var(--glow3)" onclick="closeModal('card-modal')">Cancelar</button>
+      <button class="btn" style="background:var(--glow3);color:#fff;font-weight:700" onclick="saveCard()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- IA MODAL -->
+<div class="modal-backdrop" id="ia-modal">
+  <div class="modal">
+    <div class="modal-title">🤖 Generar con IA</div>
+    <div class="filedrop" id="filedrop" onclick="document.getElementById('file-input').click()"
+         ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+      <div class="filedrop-icon">📄📎</div>
+      <div class="filedrop-title">Arrastra tu PDF, TXT o Imágenes aquí</div>
+      <div class="filedrop-sub">Soporta múltiples imágenes a la vez</div>
+      <div class="filedrop-name" id="file-name-display"></div>
+    </div>
+    <div class="ia-attachments" id="ia-attachments"></div>
+    <input type="file" id="file-input" accept=".pdf,.txt,image/jpeg,image/png,image/webp" multiple onchange="handleFileSelect(event)" style="display:none;"/>
+    <p class="section-title" style="margin:12px 0 4px">O pega texto aquí</p>
+    <textarea class="input" id="ia-paste-text" placeholder="Copia y pega apuntes, resúmenes..." rows="3" style="resize:vertical;min-height:70px"></textarea>
+    <div>
+      <p class="settings-label">Número de tarjetas a generar</p>
+      <div class="n-chips" id="n-chips"></div>
+    </div>
+    <div class="ai-status" id="ai-status"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" style="border-color:var(--glow2);color:var(--glow2)" onclick="closeModal('ia-modal')">Cancelar</button>
+      <button class="btn" style="background:var(--glow2);color:#020a06;font-weight:700" id="ia-gen-btn" onclick="generateWithAI()">⚡ Generar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settings-modal">
+  <div class="modal">
+    <div class="modal-title">⚙️ Configuración IA</div>
+    <div>
+      <p class="settings-label">Groq API Key (gratuita)</p>
+      <input class="input" id="api-key-input" placeholder="gsk_..." type="password"/>
+    </div>
+    <div class="settings-hint">
+      Obtén tu key gratis en <a href="https://console.groq.com" target="_blank" class="settings-link">console.groq.com</a> → API Keys → Create API Key.<br/>
+      Con la key gratuita puedes generar miles de flashcards al día con el modelo Llama 3.1.
+    </div>
+    <div class="settings-dedication">Hecho con amor para ti 💙</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('settings-modal')">Cancelar</button>
+      <button class="btn btn-glow" onclick="saveSettings()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- PDF.js (para extraer texto de PDFs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-AO8nLFT4rHghzb+1zw/OK3k+kWL2kfrsfAiaD/+eTR612zHA6S9BGSXFZC2H8xM7upnIPW683vgPWjfZX19VWg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════ */
+function loadData() {
+  try { return JSON.parse(localStorage.getItem('biostudy_pro') || '{}'); } catch { return {}; }
+}
+function saveData() {
+  localStorage.setItem('biostudy_pro', JSON.stringify(DB));
+}
+
+const DB = Object.assign({
+  tasks: [], notes: [], flashcards: [],
+  pomo_sessions: 0, streak: 0, streak_date: '',
+  api_key: '', pomo_work: 25, pomo_break: 5,
+}, loadData());
+
+/* ═══════════════════════════════════════════════════
+   PARTICLES CANVAS
+═══════════════════════════════════════════════════ */
+(function() {
+  const c = document.getElementById('particles');
+  const ctx = c.getContext('2d');
+  let pts = [];
+
+  function resize() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const COLORS = ['#1de98b','#0ec4f0','#b44fff'];
+  for (let i = 0; i < 22; i++) {
+    pts.push({
+      x: Math.random(), y: Math.random(),
+      vx: (Math.random() - .5) * .0003,
+      vy: (Math.random() - .5) * .0003,
+      r: Math.random() * 2 + 1.2,
+      a: Math.random() * .2 + .04,
+      c: COLORS[Math.floor(Math.random()*3)]
+    });
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (let i = 0; i < pts.length; i++) {
+      let p = pts[i];
+      p.x = (p.x + p.vx + 1) % 1;
+      p.y = (p.y + p.vy + 1) % 1;
+      ctx.beginPath();
+      ctx.arc(p.x * c.width, p.y * c.height, p.r, 0, Math.PI*2);
+      ctx.fillStyle = p.c + Math.floor(p.a * 255).toString(16).padStart(2,'0');
+      ctx.fill();
+
+      for (let j = i+1; j < pts.length; j++) {
+        let q = pts[j];
+        let dx = (p.x - q.x)*c.width, dy = (p.y - q.y)*c.height;
+        let d = Math.sqrt(dx*dx + dy*dy);
+        if (d < 130) {
+          ctx.beginPath();
+          ctx.moveTo(p.x*c.width, p.y*c.height);
+          ctx.lineTo(q.x*c.width, q.y*c.height);
+          ctx.strokeStyle = `rgba(29,233,139,${(1-d/130)*.07})`;
+          ctx.lineWidth = .8;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+let currentScreen = 'home';
+
+function goTo(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + name).classList.add('active');
+  document.querySelector(`[data-screen="${name}"]`).classList.add('active');
+  currentScreen = name;
+  if (name === 'home') renderHome();
+  if (name === 'tasks') renderTasks();
+  if (name === 'notes') renderNotes();
+  if (name === 'flash') renderFlash();
+  if (name === 'pomo')  renderPomo();
+}
+
+/* ═══════════════════════════════════════════════════
+   MODAL SYSTEM
+═══════════════════════════════════════════════════ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function saveSettings() {
+  const key = document.getElementById('api-key-input').value.trim();
+  DB.api_key = key;
+  saveData();
+  closeModal('settings-modal');
+  toast('✅ Configuración guardada');
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ═══════════════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════════════ */
+const TIPS = [
+  "La repetición espaciada mejora la retención hasta un 80%. Estudia, espera, repasa.",
+  "Sube tus apuntes en PDF y deja que la IA genere tus flashcards automáticamente 🤖",
+  "Técnica Pomodoro: 25 min de foco total + 5 de descanso. Tu cerebro lo agradece.",
+  "En biotecnología, entender los mecanismos es más valioso que memorizar nombres.",
+  "Cada tema que dominas te acerca más a ese título. Yo ya estoy orgulloso de ti 💙",
+  "Tómate un descanso cuando lo necesites. Estudiar es maratón, no sprint.",
+  "Recuerda: eres capaz de todo lo que te propongas. Y yo te acompaño en esto.",
+  "La biotecnóloga más guapa también es la más constante. Sigue así.",
+  "Un café, tus apuntes y esta app. Tú lo tienes todo para brillar 🧬",
+  "Cuando termines este tema, te lo has ganado: descansa o celebramos.",
+];
+
+const GREETINGS = {
+  morning: ['Buenos días, mi científica ☀️', 'Buenos días, princesa 🧬', 'Buenos días 💙'],
+  afternoon: ['Buenas tardes, preciosa 🔬', 'Buenas tardes 💙', 'Buenas tardes, mi amor'],
+  night: ['Buenas noches, descansa bien 🌙', 'Buenas noches 💙', 'Buenas noches, mi biotecnóloga']
+};
+function renderHome() {
+  const h = new Date().getHours();
+  const key = h < 12 ? 'morning' : h < 20 ? 'afternoon' : 'night';
+  const list = GREETINGS[key];
+  const greet = list[Math.floor(Math.random() * list.length)];
+  document.getElementById('home-greeting').textContent = greet;
+  const days = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const now = new Date();
+  document.getElementById('home-date').textContent =
+    `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]}`;
+  document.getElementById('stat-streak').textContent = DB.streak || 0;
+  document.getElementById('stat-pomos').textContent = DB.pomo_sessions || 0;
+  document.getElementById('stat-cards').textContent = DB.flashcards.length;
+  document.getElementById('home-tip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
+  const tipIaBtn = document.getElementById('home-tip-ia-btn');
+  if (tipIaBtn) tipIaBtn.style.display = DB.api_key ? 'inline-flex' : 'none';
+}
+
+async function fetchTipWithAI() {
+  const btn = document.getElementById('home-tip-ia-btn');
+  const tipEl = document.getElementById('home-tip');
+  if (!DB.api_key) { toast('⚠ Configura tu API Key en ⚙'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  tipEl.textContent = 'Generando tip personalizado...';
+  try {
+    const ctx = `Racha: ${DB.streak || 0} días. Pomodoros hoy: ${DB.pomo_sessions || 0}. Tarjetas: ${DB.flashcards.length}. Tareas pendientes: ${(DB.tasks||[]).filter(t=>!t.done).length}.`;
+    const res = await callGroq(`Eres el novio cariñoso de una estudiante de biotecnología. Escribe UN solo consejo breve (1-2 frases) en español, como si se lo dijeras a tu novia: animador, tierno y personalizado. Contexto de ella: ${ctx}. Responde SOLO el texto del tip, sin decir "tip" ni "novio", sin comillas. Tono cercano y bonito.`, { max_tokens: 150, temperature: 0.7 });
+    tipEl.textContent = res;
+    toast('💡 Tip con IA listo');
+  } catch (e) {
+    tipEl.textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
+    toast('❌ ' + (e.message || 'Error').substring(0, 40));
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🤖 Tip de tu novio con IA'; }
+}
+
+/* ═══════════════════════════════════════════════════
+   TAREAS
+═══════════════════════════════════════════════════ */
+const TASK_CATS = ['Todas','Hoy','Lab','Teoría','Examen'];
+let taskFilter = 'Todas';
+
+function renderTasks() {
+  // chips
+  const cc = document.getElementById('task-chips');
+  cc.innerHTML = TASK_CATS.map(c =>
+    `<button class="chip ${c===taskFilter?'active':''}" onclick="setTaskFilter('${c}')">${c}</button>`
+  ).join('');
+
+  // list
+  let tasks = DB.tasks;
+  if (taskFilter !== 'Todas') tasks = tasks.filter(t => t.cat === taskFilter);
+  const pending = tasks.filter(t => !t.done);
+  const done    = tasks.filter(t => t.done);
+  const el = document.getElementById('task-list');
+
+  if (!tasks.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">✓</div>Sin tareas todavía.<br>Cuando quieras, aquí estarán 💙</div>`;
+    return;
+  }
+
+  el.innerHTML = '';
+  [...pending, ...done].forEach(task => {
+    const idx = DB.tasks.indexOf(task);
+    const d = document.createElement('div');
+    d.className = `task-row ${task.done?'done':''} fade-in`;
+    d.innerHTML = `
+      <button class="task-check ${task.done?'done':''}" onclick="toggleTask(${idx})">
+        ${task.done ? '✓' : ''}
+      </button>
+      <div class="task-info">
+        <div class="task-text">${escHtml(task.text)}</div>
+        <div class="task-meta">${task.cat} · ${task.date}</div>
+      </div>
+      <button class="task-del" onclick="delTask(${idx})">✕</button>
+    `;
+    el.appendChild(d);
+  });
+}
+
+function setTaskFilter(f) { taskFilter = f; renderTasks(); }
+
+// Category chips in modal
+let taskCatSel = 'Hoy';
+function renderTaskCatChips() {
+  taskCatSel = 'Hoy';
+  document.getElementById('task-cat-chips').innerHTML =
+    TASK_CATS.slice(1).map(c =>
+      `<button class="chip ${c===taskCatSel?'active':''}" onclick="selTaskCat('${c}')">${c}</button>`
+    ).join('');
+}
+function selTaskCat(c) {
+  taskCatSel = c;
+  document.querySelectorAll('#task-cat-chips .chip').forEach(b => {
+    b.classList.toggle('active', b.textContent === c);
+  });
+}
+
+function saveTask() {
+  const v = document.getElementById('task-input').value.trim();
+  if (!v) return;
+  DB.tasks.push({ text: v, done: false, cat: taskCatSel,
+    date: new Date().toLocaleDateString('es',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) });
+  saveData();
+  document.getElementById('task-input').value = '';
+  closeModal('task-modal');
+  renderTasks();
+  toast('✓ Tarea añadida');
+}
+
+function toggleTask(i) {
+  DB.tasks[i].done = !DB.tasks[i].done;
+  saveData(); renderTasks();
+}
+function delTask(i) {
+  DB.tasks.splice(i, 1);
+  saveData(); renderTasks();
+}
+
+/* ═══════════════════════════════════════════════════
+   NOTAS
+═══════════════════════════════════════════════════ */
+const NOTE_TAGS = ['General','PCR','Proteínas','Genética','Metabolismo','Lab','Enzimas'];
+const TAG_CLASS = {
+  'PCR':'tag-pcr','Proteínas':'tag-proteinas','Genética':'tag-genetica',
+  'Metabolismo':'tag-metabolismo','Lab':'tag-lab','Enzimas':'tag-enzimas','General':'tag-general'
+};
+let noteTagSel = 'General';
+let editNoteIdx = null;
+
+function renderNotes() {
+  const el = document.getElementById('notes-grid');
+  if (!DB.notes.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">✎</div>Tu espacio de apuntes.<br>La primera nota la escribes tú ✨</div>`;
+    return;
+  }
+  el.innerHTML = '';
+  DB.notes.forEach((n, i) => {
+    const cls = TAG_CLASS[n.tag] || 'tag-general';
+    const d = document.createElement('div');
+    d.className = 'note-card fade-in';
+    d.style.setProperty('--note-ac', getTagColor(n.tag));
+    d.style.borderLeft = `3px solid ${getTagColor(n.tag)}`;
+    d.innerHTML = `
+      <div class="note-top">
+        <div class="note-title">${escHtml(n.title)}</div>
+        <span class="note-tag ${cls}">${n.tag}</span>
+        <div class="note-actions">
+          <button class="note-ia-btn" onclick="event.stopPropagation();generateCardsFromNote(${i})" title="Generar tarjetas con IA">⬡</button>
+          <button class="note-ia-btn" onclick="event.stopPropagation();summarizeNoteWithAI(${i})" title="Resumir con IA">📋</button>
+          <button class="note-del" onclick="event.stopPropagation();delNote(${i})">✕</button>
+        </div>
+      </div>
+      <div class="note-preview">${escHtml(n.body.substring(0,100))}${n.body.length>100?'…':''}</div>
+      <div class="note-date">${n.date}</div>
+    `;
+    d.addEventListener('click', () => openNoteEditor(i));
+    el.appendChild(d);
+  });
+}
+
+function getTagColor(tag) {
+  const m = {'PCR':'#1de98b','Proteínas':'#0ec4f0','Genética':'#b44fff',
+             'Metabolismo':'#f5a623','Lab':'#e84040','Enzimas':'#0ec4f0','General':'#8899aa'};
+  return m[tag] || '#8899aa';
+}
+
+function renderNoteTagChips() {
+  document.getElementById('note-tag-chips').innerHTML =
+    NOTE_TAGS.map(t =>
+      `<button class="chip ${t===noteTagSel?'active':''}"
+        style="${t===noteTagSel?'background:'+getTagColor(t)+';color:#020a06':''}"
+        onclick="selNoteTag('${t}')">${t}</button>`
+    ).join('');
+}
+function selNoteTag(t) {
+  noteTagSel = t;
+  renderNoteTagChips();
+}
+
+function openNoteEditor(idx = null) {
+  editNoteIdx = idx;
+  noteTagSel = idx !== null ? DB.notes[idx].tag : 'General';
+  document.getElementById('note-modal-title').textContent = idx !== null ? '✎ Editar nota' : '✎ Nueva nota';
+  document.getElementById('note-title-input').value = idx !== null ? DB.notes[idx].title : '';
+  document.getElementById('note-body-input').value  = idx !== null ? DB.notes[idx].body  : '';
+  renderNoteTagChips();
+  openModal('note-modal');
+}
+
+function saveNote() {
+  const title = document.getElementById('note-title-input').value.trim();
+  const body  = document.getElementById('note-body-input').value.trim();
+  if (!title && !body) { closeModal('note-modal'); return; }
+  const entry = { title: title || 'Sin título', body, tag: noteTagSel,
+    date: new Date().toLocaleDateString('es',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) };
+  if (editNoteIdx !== null) DB.notes[editNoteIdx] = entry;
+  else DB.notes.unshift(entry);
+  saveData(); closeModal('note-modal'); renderNotes();
+  toast(editNoteIdx !== null ? '✎ Nota actualizada' : '✎ Nota guardada');
+}
+
+function delNote(i) {
+  DB.notes.splice(i, 1); saveData(); renderNotes();
+}
+
+async function generateCardsFromNote(noteIdx) {
+  if (!DB.api_key) { toast('⚠ Configura tu API Key en ⚙'); return; }
+  const n = DB.notes[noteIdx];
+  const text = (n.title + '\n\n' + n.body).trim();
+  if (!text) { toast('⚠ La nota está vacía'); return; }
+  toast('🤖 Generando tarjetas desde la nota...');
+  try {
+    const added = await generateCardsFromText(text, 10);
+    toast(`✅ ${added} tarjetas generadas desde "${n.title}"`);
+    renderFlash();
+  } catch (e) {
+    toast('❌ ' + (e.message || 'Error').substring(0, 50));
+  }
+}
+
+async function summarizeNoteWithAI(noteIdx) {
+  if (!DB.api_key) { toast('⚠ Configura tu API Key en ⚙'); return; }
+  const n = DB.notes[noteIdx];
+  const text = (n.title + '\n\n' + n.body).trim();
+  if (!text) { toast('⚠ La nota está vacía'); return; }
+  toast('🤖 Resumiendo con IA...');
+  try {
+    const res = await callGroq(`Resume en 3-5 frases cortas el siguiente texto de estudio, en español. Solo el resumen, sin introducción:\n\n${text.substring(0, 3000)}`, { max_tokens: 400 });
+    const sep = '\n\n--- Resumen IA ---\n\n';
+    DB.notes[noteIdx].body = n.body + sep + res;
+    saveData();
+    renderNotes();
+    toast('📋 Resumen añadido a la nota');
+  } catch (e) {
+    toast('❌ ' + (e.message || 'Error').substring(0, 50));
+  }
+}
+
+async function improveCardWithAI(cardIdx) {
+  if (!DB.api_key) { toast('⚠ Configura tu API Key en ⚙'); return; }
+  const c = DB.flashcards[cardIdx];
+  toast('✨ Mejorando redacción...');
+  try {
+    const res = await callGroq(`Mejora la redacción de esta flashcard de estudio. Responde SOLO con un JSON válido de este formato exacto: {"q":"Pregunta mejorada","a":"Respuesta mejorada"}. Sin explicaciones. En español.\nPregunta actual: ${c.q}\nRespuesta actual: ${c.a}`, { max_tokens: 500, temperature: 0.3 });
+    let str = res.trim();
+    if (str.includes('```')) str = str.replace(/```\w*\n?/g,'').replace(/```/g,'').trim();
+    const start = str.indexOf('{'), end = str.lastIndexOf('}') + 1;
+    if (start !== -1 && end > start) str = str.slice(start, end);
+    str = str.replace(/,(\s*[}\]])/g, '$1');
+    const obj = JSON.parse(str);
+    if (obj.q) DB.flashcards[cardIdx].q = obj.q;
+    if (obj.a) DB.flashcards[cardIdx].a = obj.a;
+    saveData();
+    renderFlash();
+    toast('✨ Tarjeta mejorada');
+  } catch (e) {
+    toast('❌ ' + (e.message || 'Error').substring(0, 50));
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   FLASHCARDS LIST
+═══════════════════════════════════════════════════ */
+let studyOrderMode = 'random';
+function setStudyOrder(mode) {
+  studyOrderMode = mode;
+  document.getElementById('study-order-random').classList.toggle('active', mode === 'random');
+  document.getElementById('study-order-hard').classList.toggle('active', mode === 'hard');
+}
+function renderFlash() {
+  const sbw = document.getElementById('flash-study-btn-wrap');
+  const orderRow = document.getElementById('flash-order-row');
+  if (DB.flashcards.length) {
+    sbw.innerHTML = `<button class="btn btn-glow" style="background:var(--glow3);box-shadow:0 0 20px rgba(180,79,255,.25)"
+      onclick="startStudy()">▶ Estudiar las ${DB.flashcards.length} tarjetas</button>`;
+    if (orderRow) {
+      orderRow.style.display = 'flex';
+      document.getElementById('study-order-random').classList.toggle('active', studyOrderMode === 'random');
+      document.getElementById('study-order-hard').classList.toggle('active', studyOrderMode === 'hard');
+    }
+  } else {
+    sbw.innerHTML = '';
+    if (orderRow) orderRow.style.display = 'none';
+  }
+
+  const list = document.getElementById('flash-list');
+  if (!list) return;
+  list.innerHTML = DB.flashcards.map((c, i) => `
+    <div class="flashcard-item">
+      <div style="flex:1;">
+        <div style="font-weight:700;color:var(--text-main);margin-bottom:6px;font-size:15px">${escHtml(c.q)}</div>
+        <div style="color:var(--text1);font-size:14px;line-height:1.4">${escHtml(c.a)}</div>
+      </div>
+      <div class="flashcard-actions">
+        <button class="flashcard-action" onclick="improveCardWithAI(${i})" title="Mejorar redacción con IA">✨</button>
+        <button class="flashcard-action" onclick="delCard(${i})" title="Eliminar">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   IMAGE PROCESSING UTILS
+═══════════════════════════════════════════════════ */
+async function compressImage(file, maxSize = 1024) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxSize) {
+          height *= maxSize / width; width = maxSize;
+        } else if (height > maxSize) {
+          width *= maxSize / height; height = maxSize;
+        }
+        const cvs = document.createElement('canvas');
+        cvs.width = width; cvs.height = height;
+        const ctx = cvs.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        // Groq llama visión acepta JPEG base64 URLs
+        resolve(cvs.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fileToBase64(file) {
+  if (file.type.startsWith('image/')) return await compressImage(file);
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   GROQ API — función central
+═══════════════════════════════════════════════════ */
+async function callGroq(promptOrMessages, opts = {}) {
+  if (!DB.api_key) throw new Error('No hay API Key configurada');
+  
+  let messages = [];
+  if (typeof promptOrMessages === 'string') {
+    messages = [{ role: 'user', content: promptOrMessages }];
+  } else {
+    messages = promptOrMessages;
+  }
+
+  // Asegurarnos de que todos los mensajes tengan `content` como string
+  const normalizedMessages = messages.map(m => {
+    if (typeof m.content === 'string') return m;
+    if (!Array.isArray(m.content)) return m;
+
+    const parts = [];
+    for (const item of m.content) {
+      if (!item) continue;
+      if (typeof item === 'string') {
+        parts.push(item);
+      } else if (item.type === 'text' && typeof item.text === 'string') {
+        parts.push(item.text);
+      } else if (item.type === 'image_url' && item.image_url && item.image_url.url) {
+        parts.push('[Imagen adjunta]');
+      }
+    }
+
+    return { ...m, content: parts.join('\n\n').trim() || 'Adjunto imagen.' };
+  });
+
+  const model = opts.model || 'llama-3.1-8b-instant';
+  const maxTokens = opts.max_tokens || 1024;
+  const temperature = opts.temperature ?? 0.4;
+
+  async function doFetch(modelName, msgPayload) {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DB.api_key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: msgPayload,
+        max_tokens: maxTokens,
+        temperature: temperature
+      })
+    });
+    return res;
+  }
+
+  // Primer intento (puede ser visión si hay imágenes)
+  let res = await doFetch(model, normalizedMessages);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err.error?.message || `Error HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content?.trim() || '';
+}
+
+/* ═══════════════════════════════════════════════════
+   FLASHCARDS — generar con IA desde texto
+═══════════════════════════════════════════════════ */
+async function generateCardsFromText(text, n) {
+  const prompt = `Eres un asistente para crear flashcards de estudio. A partir del siguiente texto, genera exactamente ${n} flashcards en formato JSON array. Cada elemento debe tener "q" (pregunta) y "a" (respuesta). Las preguntas deben ser claras y las respuestas concisas.\n\nIMPORTANTE: responde SOLO con un array JSON válido, sin texto adicional, sin explicaciones, sin markdown, sin nada antes o después.\n\nTexto:\n${text.substring(0, 6000)}`;
+  const raw = await callGroq(prompt, { max_tokens: 2000, temperature: 0.3 });
+  let str = raw.trim();
+  if (str.includes('```')) str = str.replace(/```\w*\n?/g, '').replace(/```/g, '').trim();
+
+  // Extraer el primer array JSON válido que aparezca en la respuesta
+  const match = str.match(/\[(?:.|\n)*?\]/);
+  if (!match) throw new Error('No se obtuvo JSON válido. Respuesta: ' + str.slice(0, 150));
+  const jsonText = match[0].replace(/,(\s*[}\]])/g, '$1');
+
+  let cards;
+  try {
+    cards = JSON.parse(jsonText);
+  } catch (err) {
+    throw new Error('JSON no válido: ' + err.message + '. Respuesta: ' + str.slice(0, 150));
+  }
+
+  let added = 0;
+  for (const c of cards) {
+    if (c.q && c.a) { DB.flashcards.push({ q: c.q, a: c.a, hits: 0, misses: 0 }); added++; }
+  }
+  saveData();
+  return added;
+}
+
+// Cargar PDF.js (si no está cargado todavía)
+function loadPdfJs() {
+  if (window['pdfjs-dist/build/pdf']) return Promise.resolve(window['pdfjs-dist/build/pdf']);
+  return new Promise((res, rej) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.crossOrigin = 'anonymous';
+    script.referrerPolicy = 'no-referrer';
+    script.onload = () => {
+      if (window['pdfjs-dist/build/pdf']) return res(window['pdfjs-dist/build/pdf']);
+      rej(new Error('No se pudo cargar PDF.js'));
+    };
+    script.onerror = () => rej(new Error('No se pudo cargar PDF.js'));
+    document.head.appendChild(script);
+  });
+}
+
+// Leer PDF usando PDF.js
+async function readPdfFile(file) {
+  const pdfjsLib = await loadPdfJs();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it => it.str).join(' ') + '\n';
+  }
+  return text;
+}
+
+// Estado del modal IA
+let iaFiles = [];
+let nCardsSelected = 10;
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('filedrop').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('filedrop').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('filedrop').classList.remove('dragover');
+  if (e.dataTransfer.files.length) addIaFiles(Array.from(e.dataTransfer.files));
+}
+function handleFileSelect(e) { 
+  if (e.target.files.length) addIaFiles(Array.from(e.target.files)); 
+}
+function addIaFiles(files) {
+  // Limitar a máximo 5 archivos visualmente para no saturar memoria/api
+  const toAdd = files.slice(0, 5 - iaFiles.length);
+  iaFiles.push(...toAdd);
+  renderIaFiles();
+}
+function removeIaFile(idx) {
+  iaFiles.splice(idx, 1);
+  renderIaFiles();
+}
+function renderIaFiles() {
+  const container = document.getElementById('ia-attachments');
+  const display = document.getElementById('file-name-display');
+  
+  if (iaFiles.length === 0) {
+    container.innerHTML = '';
+    display.textContent = '';
+    return;
+  }
+  
+  display.textContent = `${iaFiles.length} archivo(s) adjunto(s)`;
+  
+  let html = '';
+  iaFiles.forEach((f, i) => {
+    if (f.type.startsWith('image/')) {
+      const url = URL.createObjectURL(f);
+      html += `
+        <div class="ia-attach-item">
+          <img src="${url}" class="ia-attach-img" onload="URL.revokeObjectURL(this.src)">
+          <button class="ia-attach-del" onclick="event.stopPropagation(); removeIaFile(${i})">✕</button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="ia-attach-item" style="display:flex;align-items:center;justify-content:center;font-size:24px;">📄
+          <button class="ia-attach-del" onclick="event.stopPropagation(); removeIaFile(${i})">✕</button>
+        </div>
+      `;
+    }
+  });
+  container.innerHTML = html;
+}
+
+function sanitizeText(str) {
+  if (!str || typeof str !== 'string') return '';
+  // Eliminar caracteres no imprimibles que suelen aparecer al leer PDF como texto binario
+  return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+}
+
+function renderNChips() {
+  const opts = [5, 10, 15, 20];
+  document.getElementById('n-chips').innerHTML = opts.map(n =>
+    `<button class="chip ${n===nCardsSelected?'active':''}" onclick="selNCards(${n})">${n}</button>`
+  ).join('');
+}
+function selNCards(n) {
+  nCardsSelected = n;
+  renderNChips();
+}
+
+async function generateWithAI() {
+  if (!DB.api_key) { toast('⚠ Configura tu API Key en ⚙'); return; }
+  const pasteText = document.getElementById('ia-paste-text').value.trim();
+  
+  if (!pasteText && iaFiles.length === 0) { toast('⚠ Sube archivos o pega texto'); return; }
+
+  const btn = document.getElementById('ia-gen-btn');
+  btn.disabled = true;
+  document.getElementById('ai-status').textContent = '🤖 Procesando archivos...';
+
+  try {
+    let imagesBase64 = [];
+    let pdfText = pasteText;
+    
+    for (const f of iaFiles) {
+      if (f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')) {
+        const text = await readPdfFile(f);
+        if (!text || !text.trim()) throw new Error('No se pudo extraer texto del PDF.');
+        pdfText += '\n' + text;
+      } else if (f.type.startsWith('image/')) {
+        const b64 = await compressImage(f, 1500); // Resize max 1500px 
+        imagesBase64.push(b64);
+      } else if (f.type === 'text/plain' || f.name.toLowerCase().endsWith('.txt')) {
+        const text = await new Promise((res, rej) => {
+          const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsText(f);
+        });
+        pdfText += '\n' + text;
+      }
+    }
+
+    document.getElementById('ai-status').textContent = '🤖 Generando tarjetas con IA...';
+    
+    pdfText = sanitizeText(pdfText);
+
+    let contentObj = [];
+    if (pdfText) {
+      contentObj.push({ type: 'text', text: `Extrae información importante de este material y crea exactamente ${nCardsSelected} flashcards en formato JSON array con "q" y "a".\n\nIMPORTANTE: responde SOLO con un array JSON válido, sin texto adicional, sin explicaciones, sin markdown, sin nada antes o después.\n\nTexto/Apuntes:\n${pdfText.substring(0, 10000)}` });
+    } else {
+      contentObj.push({ type: 'text', text: `Extrae información importante de estas imágenes/apuntes y crea exactamente ${nCardsSelected} flashcards en formato JSON array con "q" y "a". Las preguntas deben ser claras y las respuestas concisas.\n\nIMPORTANTE: responde SOLO con un array JSON válido, sin texto adicional, sin explicaciones, sin markdown, sin nada antes o después.` });
+    }
+    
+    for (const b64 of imagesBase64) {
+      // API expects { url: "data:image/jpeg;base64,..." } validation requires image_url object
+      contentObj.push({ type: 'image_url', image_url: { url: b64 } });
+    }
+    
+    // Si no hay imágenes, pasamos texto puro (mejora rendimiento)
+    const finalContent = imagesBase64.length > 0 ? contentObj : contentObj[0].text;
+    
+    const raw = await callGroq(finalContent, { max_tokens: 2500, temperature: 0.3 });
+    
+    let str = raw.trim();
+    if (str.includes('```')) str = str.replace(/```\w*\n?/g, '').replace(/```/g, '').trim();
+
+    // Extraer el primer array JSON válido que aparezca en la respuesta
+    const match = str.match(/\[(?:.|\n)*?\]/);
+    if (!match) throw new Error('No se obtuvo JSON válido. Respuesta: ' + str.slice(0, 150));
+    const jsonText = match[0].replace(/,(\s*[}\]])/g, '$1');
+
+    let cards;
+    try {
+      cards = JSON.parse(jsonText);
+    } catch (err) {
+      throw new Error('JSON no válido: ' + err.message + '. Respuesta: ' + str.slice(0, 150));
+    }
+
+    let added = 0;
+    for (const c of cards) {
+      if (c.q && c.a) { DB.flashcards.push({ q: c.q, a: c.a, hits: 0, misses: 0 }); added++; }
+    }
+    saveData();
+    
+    toast(`✅ ${added} tarjetas creadas`);
+    closeModal('ia-modal'); 
+    renderFlash();
+    document.getElementById('ia-paste-text').value = '';
+    iaFiles = []; renderIaFiles();
+    
+  } catch(e) {
+    toast('❌ Error: ' + e.message.substring(0, 50));
+  }
+
+  document.getElementById('ai-status').textContent = '';
+  btn.disabled = false;
+
+}
+
+/* ═══════════════════════════════════════════════════
+   FLASHCARD — delete
+═══════════════════════════════════════════════════ */
+function delCard(i) {
+  DB.flashcards.splice(i, 1);
+  saveData(); renderFlash();
+}
+
+/* ═══════════════════════════════════════════════════
+   STUDY MODE
+═══════════════════════════════════════════════════ */
+let studyCards = [], studyIdx = 0, studyOk = 0, studyKo = 0, studyFlipped = false;
+
+function startStudy() {
+  if (!DB.flashcards.length) return;
+  let cards = [...DB.flashcards];
+  if (studyOrderMode === 'hard') {
+    cards.sort((a,b) => {
+      const ra = a.hits/(a.hits+a.misses+1), rb = b.hits/(b.hits+b.misses+1);
+      return ra - rb;
+    });
+  } else {
+    for (let i = cards.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [cards[i],cards[j]] = [cards[j],cards[i]];
+    }
+  }
+  studyCards = cards; studyIdx = 0; studyOk = 0; studyKo = 0;
+  document.getElementById('study-view').classList.add('open');
+  document.getElementById('results-view').classList.remove('open');
+  showStudyCard();
+}
+
+function showStudyCard() {
+  studyFlipped = false;
+  const c = studyCards[studyIdx];
+  const total = studyCards.length;
+  document.getElementById('study-prog-text').textContent = `${studyIdx+1} / ${total}`;
+  document.getElementById('study-score-text').textContent = `✅ ${studyOk}  ❌ ${studyKo}`;
+  document.getElementById('study-bar').style.width = `${(studyIdx/total)*100}%`;
+  document.getElementById('study-side').textContent = 'PREGUNTA';
+  document.getElementById('study-main').textContent = c.q;
+  document.getElementById('study-answer').textContent = c.a;
+  document.getElementById('study-answer').style.display = 'none';
+  document.getElementById('study-hint').style.display = '';
+  document.getElementById('study-flip-btn').style.display = '';
+  document.getElementById('study-eval-row').style.display = 'none';
+}
+
+function flipCard() {
+  if (studyFlipped) return;
+  studyFlipped = true;
+  document.getElementById('study-side').textContent = 'RESPUESTA';
+  document.getElementById('study-answer').style.display = '';
+  document.getElementById('study-hint').style.display = 'none';
+  document.getElementById('study-flip-btn').style.display = 'none';
+  document.getElementById('study-eval-row').style.display = 'flex';
+}
+
+function nextCard(ok) {
+  const c = studyCards[studyIdx];
+  const origIdx = DB.flashcards.findIndex(f => f.q === c.q && f.a === c.a);
+  if (origIdx !== -1) {
+    if (ok) DB.flashcards[origIdx].hits = (DB.flashcards[origIdx].hits||0)+1;
+    else     DB.flashcards[origIdx].misses = (DB.flashcards[origIdx].misses||0)+1;
+    saveData();
+  }
+  
+  if (ok) {
+    studyOk++; 
+  } else {
+    studyKo++;
+    // Si no la sabe ("Repasar"), abrir el chatbot con contexto de la tarjeta
+    setTimeout(() => {
+      openChatWithContext(`Me costó recordar esta flashcard:\n\nPregunta: ${c.q}\nRespuesta: ${c.a}\n\nActúa como mi tutor. Explícame el concepto de forma muy sencilla, con una analogía si es posible, para que no se me vuelva a olvidar.`);
+    }, 400);
+  }
+  
+  studyIdx++;
+  if (studyIdx >= studyCards.length) { showResults(); return; }
+  showStudyCard();
+}
+
+function openChatWithContext(prompt) {
+  openChat();
+  document.getElementById('chat-input').value = prompt;
+  setTimeout(() => sendChatMessage(), 500);
+}
+
+function showResults() {
+  const pct = Math.round((studyOk/studyCards.length)*100);
+  document.getElementById('study-view').classList.remove('open');
+  document.getElementById('results-view').classList.add('open');
+  document.getElementById('res-pct').textContent = pct + '%';
+  document.getElementById('res-ok').textContent = studyOk;
+  document.getElementById('res-ko').textContent = studyKo;
+  document.getElementById('res-tot').textContent = studyCards.length;
+  const emojis = pct===100?'🏆':pct>=80?'🎉':pct>=60?'💪':'📖';
+  document.getElementById('res-emoji').textContent = emojis;
+  document.getElementById('res-title').textContent = pct>=80?'¡Excelente trabajo!':pct>=60?'¡Buen progreso!':'¡Sigue practicando!';
+  // Racha
+  const today = new Date().toDateString();
+  if (DB.streak_date !== today) { DB.streak = (DB.streak||0)+1; DB.streak_date = today; saveData(); }
+}
+
+function exitStudy() {
+  document.getElementById('study-view').classList.remove('open');
+  document.getElementById('results-view').classList.remove('open');
+  renderFlash();
+}
+
+/* ═══════════════════════════════════════════════════
+   POMODORO
+═══════════════════════════════════════════════════ */
+let pomoTimer = null, pomoSeconds = 0, pomoRunning = false, pomoMode = 'work';
+const WORK_MINS  = [15,20,25,30,45];
+const BREAK_MINS = [5,10,15];
+
+function renderPomo() {
+  // config chips trabajo
+  document.getElementById('cfg-work').innerHTML = WORK_MINS.map(m =>
+    `<button class="chip ${m===DB.pomo_work?'active':''}" onclick="setCfgWork(${m})">${m}</button>`
+  ).join('');
+  document.getElementById('cfg-break').innerHTML = BREAK_MINS.map(m =>
+    `<button class="chip ${m===DB.pomo_break?'active':''}" onclick="setCfgBreak(${m})">${m}</button>`
+  ).join('');
+  document.getElementById('pomo-total').textContent = `${DB.pomo_sessions||0} 🍅`;
+  if (!pomoRunning) pomoReset();
+}
+
+function setCfgWork(m) {
+  DB.pomo_work = m; saveData();
+  document.querySelectorAll('#cfg-work .chip').forEach(b => b.classList.toggle('active', parseInt(b.textContent)===m));
+  if (!pomoRunning && pomoMode==='work') pomoReset();
+}
+function setCfgBreak(m) {
+  DB.pomo_break = m; saveData();
+  document.querySelectorAll('#cfg-break .chip').forEach(b => b.classList.toggle('active', parseInt(b.textContent)===m));
+  if (!pomoRunning && pomoMode==='break') pomoReset();
+}
+
+function setPomoMode(mode) {
+  pomoMode = mode;
+  document.querySelectorAll('#pomo-modes .chip').forEach(b => b.classList.toggle('active', b.dataset.mode===mode));
+  if (!pomoRunning) pomoReset();
+}
+
+function pomoReset() {
+  clearInterval(pomoTimer); pomoRunning = false;
+  pomoSeconds = (pomoMode==='work' ? DB.pomo_work : DB.pomo_break) * 60;
+  updatePomoDisplay();
+  document.getElementById('pomo-start-btn').textContent = '▶ Iniciar';
+  const label = pomoMode==='work' ? 'ENFÓCATE 🎯' : 'DESCANSA 🌿';
+  document.getElementById('pomo-mode-label').textContent = label;
+}
+
+function pomoToggle() {
+  if (pomoRunning) {
+    clearInterval(pomoTimer); pomoRunning = false;
+    document.getElementById('pomo-start-btn').textContent = '▶ Continuar';
+  } else {
+    pomoRunning = true;
+    document.getElementById('pomo-start-btn').textContent = '⏸ Pausar';
+    const total = (pomoMode==='work' ? DB.pomo_work : DB.pomo_break) * 60;
+    pomoTimer = setInterval(() => {
+      pomoSeconds--;
+      updatePomoDisplay(total);
+      if (pomoSeconds <= 0) {
+        clearInterval(pomoTimer); pomoRunning = false;
+        if (pomoMode==='work') { DB.pomo_sessions = (DB.pomo_sessions||0)+1; saveData(); }
+        document.getElementById('pomo-total').textContent = `${DB.pomo_sessions||0} 🍅`;
+        document.getElementById('pomo-session-icons').textContent = `🍅 × ${DB.pomo_sessions||0}`;
+        toast(pomoMode==='work' ? '🍅 ¡Sesión completada! Descansa.' : '🎯 ¡Descanso terminado! A trabajar.');
+        pomoMode = pomoMode==='work' ? 'break' : 'work';
+        setPomoMode(pomoMode);
+      }
+    }, 1000);
+  }
+}
+
+function updatePomoDisplay(total) {
+  const dur = (pomoMode==='work' ? DB.pomo_work : DB.pomo_break) * 60;
+  const t = total || dur;
+  const m = Math.floor(pomoSeconds/60), s = pomoSeconds%60;
+  document.getElementById('pomo-display').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const circ = 2*Math.PI*88;
+  const arc = document.getElementById('pomo-arc');
+  const frac = pomoSeconds/t;
+  arc.style.strokeDasharray = circ;
+  arc.style.strokeDashoffset = circ*(1-frac);
+  arc.style.stroke = pomoMode==='work' ? '#1de98b' : '#0ec4f0';
+  document.getElementById('pomo-session-icons').textContent = `🍅 × ${DB.pomo_sessions||0}`;
+}
+
+/* ═══════════════════════════════════════════════════
+   QUIZ CON IA
+═══════════════════════════════════════════════════ */
+let quizLevel = 'basico';
+let quizNQs = 5;
+let currentQuiz = [];
+let qIdx = 0, qOk = 0, qKo = 0;
+
+function renderQuizInit() {
+  const opts = [5, 10, 15];
+  document.getElementById('quiz-nq-row').innerHTML = opts.map(n =>
+    `<button class="chip ${n===quizNQs?'active':''}" onclick="selQuizNQs(${n})">${n}</button>`
+  ).join('');
+}
+function selectLevel(el, lvl) {
+  quizLevel = lvl;
+  document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selQuizNQs(n) {
+  quizNQs = n;
+  renderQuizInit();
+}
+
+async function generateQuiz() {
+  if (!DB.api_key) { toast('⚠ Configura tu API Key en ⚙'); return; }
+  const topic = document.getElementById('quiz-topic').value.trim();
+  if (!topic) { toast('⚠ Ingresa un tema a evaluar'); return; }
+
+  const btn = document.getElementById('quiz-gen-btn');
+  const status = document.getElementById('quiz-gen-status');
+  btn.disabled = true;
+  status.textContent = '🤖 Creando preguntas (' + quizNQs + ')...';
+
+  const lvlDesc = quizLevel === 'basico' ? 'Conceptos básicos y fáciles' : quizLevel === 'intermedio' ? 'Nivel universitario medio, requiere análisis' : 'Avanzado, detallado y complejo';
+
+  const prompt = `Eres profesor universitario de biotecnología. Crea un quiz de opción múltiple con exactamente ${quizNQs} preguntas sobre: "${topic}".
+Nivel de dificultad: ${lvlDesc}.
+Responde SOLO con un array JSON en este formato estricto, sin markdown ni explicaciones:
+[
+  {
+    "q": "Texto de la pregunta",
+    "opts": ["Opción A", "Opción B", "Opción C", "Opción D"],
+    "ans": 0, // Índice de la respuesta correcta (0-3)
+    "exp": "Explicación breve de por qué es la correcta"
+  }
+]`;
+
+  try {
+    const raw = await callGroq(prompt, { max_tokens: 3000, temperature: 0.3 });
+    let str = raw.trim();
+    if (str.includes('```')) { str = str.replace(/```\w*\n?/g, '').replace(/```/g, '').trim(); }
+    const start = str.indexOf('['); const end = str.lastIndexOf(']') + 1;
+    if (start === -1 || end <= start) throw new Error('Formato devuelto incorrecto');
+    str = str.slice(start, end).replace(/,(\s*[}\]])/g, '$1');
+    currentQuiz = JSON.parse(str);
+    
+    if (currentQuiz.length > 0) {
+      startQuizPlay();
+    } else {
+      throw new Error('El quiz está vacío');
+    }
+  } catch(e) {
+    toast('❌ Error al generar: ' + e.message);
+  }
+  status.textContent = '';
+  btn.disabled = false;
+}
+
+function startQuizPlay() {
+  qIdx = 0; qOk = 0; qKo = 0;
+  document.getElementById('quiz-play-view').classList.add('open');
+  document.getElementById('quiz-results-view').classList.remove('open');
+  showQuizQuestion();
+}
+
+function showQuizQuestion() {
+  const q = currentQuiz[qIdx];
+  const total = currentQuiz.length;
+  document.getElementById('quiz-play-num').textContent = `${qIdx+1} / ${total}`;
+  document.getElementById('quiz-play-score').innerHTML = `✅ ${qOk} &nbsp;❌ ${qKo}`;
+  document.getElementById('quiz-bar').style.width = `${((qIdx)/total)*100}%`;
+  
+  const colors = {'basico':'#1de98b','intermedio':'#0ec4f0','avanzado':'#b44fff'};
+  const badges = {'basico':'🌱 Básico','intermedio':'🧬 Intermedio','avanzado':'🔬 Avanzado'};
+  const bg = colors[quizLevel];
+
+  const html = `
+    <div class="quiz-diff-badge" style="background: color-mix(in srgb, ${bg} 15%, transparent); color: ${bg}">${badges[quizLevel]}</div>
+    <div class="quiz-question-text">${escHtml(q.q)}</div>
+    <div class="quiz-options">
+      ${q.opts.map((opt, i) => `
+        <button class="quiz-option" onclick="answerQuiz(${i}, this)">
+          <div class="option-letter">${String.fromCharCode(65+i)}</div>
+          <div style="flex:1">${escHtml(opt)}</div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="quiz-explanation" id="quiz-exp">
+      <div class="quiz-explanation-head">EXPLICACIÓN</div>
+      ${escHtml(q.exp)}
+    </div>
+  `;
+  document.getElementById('quiz-play-body').innerHTML = html;
+  document.getElementById('quiz-next-btn').classList.remove('show');
+  document.getElementById('quiz-play-body').scrollTop = 0;
+}
+
+function answerQuiz(selectedIdx, btnEl) {
+  const options = document.querySelectorAll('.quiz-option');
+  if (options[0] && options[0].classList.contains('answered')) return; // Ya respondida
+  
+  const q = currentQuiz[qIdx];
+  const isCorrect = (selectedIdx === q.ans);
+  
+  options.forEach((opt, i) => {
+    opt.classList.add('answered');
+    if (i === q.ans) opt.classList.add('correct');
+    else if (i === selectedIdx) opt.classList.add('wrong');
+    else opt.classList.add('reveal');
+  });
+
+  if (isCorrect) qOk++; else qKo++;
+  document.getElementById('quiz-play-score').innerHTML = `✅ ${qOk} &nbsp;❌ ${qKo}`;
+  document.getElementById('quiz-exp').classList.add('show');
+  document.getElementById('quiz-next-btn').classList.add('show');
+  
+  setTimeout(() => {
+    const body = document.getElementById('quiz-play-body');
+    body.scrollTop = body.scrollHeight;
+  }, 100);
+}
+
+function quizNextQuestion() {
+  qIdx++;
+  if (qIdx >= currentQuiz.length) {
+    showQuizResults();
+  } else {
+    showQuizQuestion();
+  }
+}
+
+function showQuizResults() {
+  document.getElementById('quiz-play-view').classList.remove('open');
+  document.getElementById('quiz-results-view').classList.add('open');
+  const pct = Math.round((qOk / currentQuiz.length) * 100);
+  document.getElementById('qres-pct').textContent = pct + '%';
+  document.getElementById('qres-ok').textContent = qOk;
+  document.getElementById('qres-ko').textContent = qKo;
+  document.getElementById('qres-tot').textContent = currentQuiz.length;
+  
+  const badges = {'basico':'Nivel Básico 🌱','intermedio':'Nivel Intermedio 🧬','avanzado':'Nivel Avanzado 🔬'};
+  document.getElementById('qres-level-tag').textContent = badges[quizLevel];
+
+  const emojis = pct === 100 ? '🏆' : pct >= 80 ? '👏' : pct >= 50 ? '🧠' : '📚';
+  document.getElementById('qres-emoji').textContent = emojis;
+  document.getElementById('qres-title').textContent = pct >= 80 ? '¡Excelente!' : pct >= 50 ? 'Buen intento' : 'Necesitas repasar';
+}
+
+function exitQuiz() {
+  document.getElementById('quiz-play-view').classList.remove('open');
+  document.getElementById('quiz-results-view').classList.remove('open');
+}
+
+function restartQuiz() {
+  startQuizPlay();
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+function initApp() {
+  // Inicializar chips
+  renderNChips();
+  renderTaskCatChips();
+  renderQuizInit();
+  // Abrir settings modal al inicio si no hay key
+  const stored = localStorage.getItem('biostudy_pro');
+  const parsed = stored ? JSON.parse(stored) : {};
+  if (parsed.api_key) {
+    document.getElementById('api-key-input').value = parsed.api_key;
+  }
+  renderHome();
+}
+
+initApp();
+
+/* ═══════════════════════════════════════════════════
+   CHAT IA — LÓGICA
+═══════════════════════════════════════════════════ */
+let chatHistory = [];  // historial para contexto multi-turno
+let chatOpen = false;
+let chatAttachments = [];
+
+function toggleChat() {
+  chatOpen ? closeChat() : openChat();
+}
+
+function openChat() {
+  if (!DB.api_key) {
+    toast('⚠ Configura tu API Key en ⚙ para usar el chat');
+    openModal('settings-modal');
+    return;
+  }
+  chatOpen = true;
+  document.getElementById('chat-panel').classList.add('open');
+  document.getElementById('chat-overlay').classList.add('open');
+  document.getElementById('chat-fab').textContent = '✕';
+  setTimeout(() => document.getElementById('chat-input').focus(), 350);
+}
+
+function closeChat() {
+  chatOpen = false;
+  document.getElementById('chat-panel').classList.remove('open');
+  document.getElementById('chat-overlay').classList.remove('open');
+  document.getElementById('chat-fab').textContent = '🤖';
+}
+
+function clearChat() {
+  chatHistory = [];
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = `
+    <div class="chat-welcome" id="chat-welcome">
+      <div class="chat-welcome-emoji">🧬</div>
+      <div class="chat-welcome-title">¡Chat reiniciado!</div>
+      <div>Puedes hacerme cualquier pregunta sobre biotecnología 💙</div>
+      <div class="chat-suggestions">
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">¿Qué es la PCR y para qué sirve?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">Explícame la replicación del ADN</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">¿Cuál es la diferencia entre ARNm y ARNt?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">Resúmeme el ciclo de Krebs</button>
+      </div>
+    </div>`;
+}
+
+
+async function handleChatFiles(e) {
+  const files = Array.from(e.target.files);
+  for (const f of files) {
+    if (f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')) {
+      try {
+        const text = await readPdfFile(f);
+        chatAttachments.push({ type: 'text', text: text, name: f.name });
+      } catch (err) {
+        console.warn('No se pudo leer PDF:', err);
+        toast('⚠ No se pudo leer el PDF: ' + f.name);
+      }
+    } else if (f.type === 'text/plain' || f.name.toLowerCase().endsWith('.txt')) {
+      const txt = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.onerror = rej;
+        r.readAsText(f);
+      });
+      chatAttachments.push({ type: 'text', text: txt, name: f.name });
+    } else {
+      toast('⚠ Solo se admiten PDF/TXT en el chat.');
+    }
+  }
+  renderChatAttachments();
+  e.target.value = ''; // reset
+}
+
+function removeChatAttachment(idx) {
+  chatAttachments.splice(idx, 1);
+  renderChatAttachments();
+}
+
+function renderChatAttachments() {
+  const container = document.getElementById('chat-attach-preview');
+  if (!container) return;
+  if (chatAttachments.length === 0) {
+    container.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  container.style.display = 'flex';
+  container.innerHTML = chatAttachments.map((att, i) => {
+    if (att.type === 'image') {
+      return `
+        <div class="chat-attach-thumb" style="position:relative;display:inline-block;margin:4px;">
+          <img src="${att.data}" style="height:40px;border-radius:4px;border:1px solid #ffffff33;">
+          <button onclick="removeChatAttachment(${i})" style="position:absolute;top:-5px;right:-5px;background:#ff4f4f;border:none;border-radius:50%;width:16px;height:16px;color:#fff;font-size:10px;cursor:pointer;">✕</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="chat-attach-thumb" style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:120px;height:40px;margin:4px;padding:4px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);font-size:11px;">
+        <div style="text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;padding-right:18px;">📄 ${att.name}</div>
+        <button onclick="removeChatAttachment(${i})" style="position:absolute;top:-5px;right:-5px;background:#ff4f4f;border:none;border-radius:50%;width:16px;height:16px;color:#fff;font-size:10px;cursor:pointer;">✕</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function sendSuggestion(btn) {
+  const text = btn.textContent;
+  document.getElementById('chat-input').value = text;
+  sendChatMessage();
+}
+
+function chatKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+function chatAutoResize(el) {
+  el.style.height = '40px';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function appendChatMsg(role, text) {
+  // Ocultar welcome si existe
+  const welcome = document.getElementById('chat-welcome');
+  if (welcome) welcome.style.display = 'none';
+
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  div.innerHTML = `<div class="chat-bubble">${escHtml(text).replace(/\n/g, '<br>')}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot';
+  div.id = 'chat-typing-indicator';
+  div.innerHTML = `<div class="chat-bubble chat-typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('chat-typing-indicator');
+  if (el) el.remove();
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
+  const userText = input.value.trim();
+  if (!userText && chatAttachments.length === 0) return;
+
+  if (!DB.api_key) {
+    toast('⚠ Configura tu API Key en ⚙ primero');
+    closeChat();
+    openModal('settings-modal');
+    return;
+  }
+
+  // Limpiar input y adjuntos visuales
+  input.value = '';
+  input.style.height = '40px';
+  sendBtn.disabled = true;
+
+  // Mostrar mensaje del usuario
+  let htmlMsg = userText;
+  if (chatAttachments.length > 0) {
+    htmlMsg += '<br>' + chatAttachments.map(att => {
+      if (att.type === 'image') return `<img src="${att.data}" style="max-width:100%;border-radius:8px;margin-top:4px;">`;
+      return `<div style="margin-top:8px;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;font-size:12px;">📄 ${att.name}</div>`;
+    }).join('');
+  }
+  appendChatMsg('user', htmlMsg);
+
+  // Construir mensaje para la IA (siempre como texto, porque la API valida que content sea string)
+  let userMessageContent = userText || '';
+  const extras = [];
+  for (const att of chatAttachments) {
+    if (att.type === 'image') {
+      extras.push(`[Imagen adjunta]`);
+    } else if (att.type === 'text') {
+      const truncated = att.text ? att.text.substring(0, 12000) : '';
+      extras.push(`Archivo: ${att.name}\n\n${truncated}`);
+    }
+  }
+  if (extras.length) {
+    userMessageContent = `${userMessageContent}${userMessageContent ? '\n\n' : ''}${extras.join('\n\n')}`.trim();
+  }
+
+  if (!userMessageContent) {
+    userMessageContent = "Analiza esta imagen";
+  }
+
+  // Agregar al historial
+  chatHistory.push({ role: 'user', content: userMessageContent });
+  
+  // Limpiar attachments pendientes
+  chatAttachments = [];
+  renderChatAttachments();
+
+  // Mostrar indicador de escritura
+  showTyping();
+  document.getElementById('chat-status').textContent = '● Escribiendo...';
+
+  try {
+    const systemPrompt = `Eres un asistente experto en biotecnología, biología molecular, genética y bioquímica. Ayudas a una estudiante de biotecnología a estudiar. Responde de forma clara, concisa y pedagógica en español. Usa emojis ocasionalmente para hacer la respuesta más amena. Si la pregunta no es sobre biología o biotecnología, responde con amabilidad que tu especialidad es esa área. Máximo 3-4 párrafos por respuesta.`;
+
+    const responseText = await callGroq([
+      { role: 'system', content: systemPrompt },
+      ...chatHistory
+    ], { max_tokens: 1000, temperature: 0.6 });
+
+    hideTyping();
+
+    // Agregar respuesta al historial
+    chatHistory.push({ role: 'assistant', content: responseText });
+
+    // Mostrar respuesta (máximo 40 turnos en historial)
+    if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+
+    appendChatMsg('bot', responseText);
+    document.getElementById('chat-status').textContent = '● En línea';
+
+  } catch (e) {
+    hideTyping();
+    appendChatMsg('bot', '❌ ' + (e.message || 'Error al conectar con la IA. Verifica tu API key.'));
+    document.getElementById('chat-status').textContent = '● Error';
+    setTimeout(() => {
+      document.getElementById('chat-status').textContent = '● En línea';
+    }, 3000);
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+/* ═══════════════════════════════════════════════════
+   UTIL
+═══════════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
